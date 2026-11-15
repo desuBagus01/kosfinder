@@ -27,4 +27,20 @@ void main() {
     expect(find.text('0'), findsNothing);
     expect(find.text('1'), findsOneWidget);
   });
+
+  testWidgets('Navigates to About page and displays student identity', (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(const MyApp());
+
+    // Verify info icon is present in AppBar.
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
+
+    // Tap the info icon and trigger navigation.
+    await tester.tap(find.byIcon(Icons.info_outline));
+    await tester.pumpAndSettle();
+
+    // Verify that About page title and identity are displayed.
+    expect(find.text('About'), findsOneWidget);
+    expect(find.text('2415051014 - Gede Supadma'), findsOneWidget);
+  });
 }
