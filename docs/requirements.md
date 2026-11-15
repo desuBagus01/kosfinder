@@ -1,6 +1,6 @@
 # Spesifikasi Kebutuhan Aplikasi KosFinder (Requirements Specification)
 
-Dokumen ini disusun berdasarkan kebutuhan pengguna pada [user-story.md](file:///c:/src/kosfinder/docs/user-story.md) untuk mendefinisikan kriteria penerimaan (*Acceptance Criteria*) konkret yang dapat diuji pada rilis Versi 1.
+Dokumen ini disusun berdasarkan kebutuhan pengguna pada [user-story.md](file:///c:/src/kosfinder/docs/user-story.md) untuk mendefinisikan kebutuhan fungsional (*Functional Requirements*), kebutuhan non-fungsional (*Non-Functional Requirements*), kriteria penerimaan (*Acceptance Criteria*), batasan ruang lingkup, serta matriks keterlacakan (*Traceability Matrix*) pada rilis KosFinder Versi 1.
 
 ---
 
@@ -8,25 +8,118 @@ Dokumen ini disusun berdasarkan kebutuhan pengguna pada [user-story.md](file:///
 
 | Peran | Wajib Login | Hak Akses Utama |
 |---|---|---|
-| **Pencari Kos** | Tidak | Menjelajah daftar kos, mencari area, memfilter harga & fasilitas, melihat detail kos. |
-| **Pemilik Kos** | Ya | Mendaftar, masuk, keluar, menambah kos, mengubah & menghapus kos milik sendiri, memperbarui ketersediaan kamar. |
+| **Pencari Kos** | Tidak | Menjelajah daftar kos, mencari area, memfilter harga & fasilitas, melihat detail kos beserta kontak pemilik. |
+| **Pemilik Kos** | Ya | Mendaftar akun, masuk, keluar, menambah kos, mengubah & menghapus kos milik sendiri, memperbarui ketersediaan kamar. |
 
 ---
 
-## 2. Batasan Ruang Lingkup Versi 1 (Out of Scope)
+## 2. Ruang Lingkup Versi 1 (Scope)
 
-Fitur-fitur berikut **tidak diimplementasikan** pada versi 1:
-- Pembayaran online
-- Fitur chat interaktif
-- Ulasan (*review*) dan rating
-- Rekomendasi berbasis AI
-- Verifikasi identitas pemilik kos (KTP/dokumen legalitas)
-- Unggah foto kos (*photo upload*)
-- Tampilan peta (*maps*)
+### 2.1 Fitur yang Termasuk dalam Versi 1 (In Scope)
+1. **Pemuatan Daftar Kos Publik:** Pencari kos dapat melihat seluruh daftar kos aktif langsung dari backend tanpa perlu login.
+2. **Pencarian Kos Berdasarkan Area:** Pencari kos dapat mencari kos menggunakan kata kunci teks bebas (*free-text input*) seperti nama jalan, kecamatan, atau area tanpa dropdown/autocomplete wilayah.
+3. **Penyaringan Kos:** Pencari kos dapat memfilter kos berdasarkan harga maksimum per bulan (format baku Rp/bulan) dan fasilitas tetap (*fixed checkbox*: WiFi, Kamar Mandi Dalam, Parkir).
+4. **Tampilan Detail Kos & Kontak Pemilik:** Menampilkan informasi detail kos (nama, alamat, harga/bulan, fasilitas, deskripsi, kamar tersedia) serta nomor telepon/WhatsApp pemilik kos agar pencari dapat menghubungi secara langsung.
+5. **Autentikasi Pemilik Kos:** Registrasi pemilik baru hanya dengan email dan password (tanpa nama lengkap atau nomor telepon), login akun, dan logout akun.
+6. **Penambahan Data Kos:** Pemilik kos dapat menambahkan data kos baru yang memuat seluruh informasi wajib (termasuk nomor kontak dan harga per bulan).
+7. **Pengelolaan Kos Milik Sendiri:** Pemilik kos dapat mengubah dan menghapus data kos miliknya sendiri dengan penegakan otorisasi ketat di backend.
+8. **Pembaruan Kamar Tersedia:** Pemilik kos dapat memperbarui jumlah kamar tersedia (>= 0), termasuk status kamar penuh jika bernilai 0.
+
+### 2.2 Fitur yang Tidak Termasuk dalam Versi 1 (Out of Scope)
+1. **Pembayaran Online:** Tidak ada integrasi dengan *payment gateway* atau dompet digital.
+2. **Fitur Chat:** Tidak ada fitur perpesanan instan bawaan di dalam aplikasi; komunikasi dilakukan melalui kontak manual (telepon/WhatsApp).
+3. **Ulasan dan Rating:** Tidak ada fitur memberikan ulasan, bintang, atau penilaian kos.
+4. **Rekomendasi Berbasis AI:** Tidak ada algoritma rekomendasi otomatis atau fitur cerdas berbasis kecerdasan buatan.
+5. **Verifikasi Identitas Pemilik:** Tidak ada proses unggah KTP/dokumen legalitas kepemilikan kos.
+6. **Unggah Foto Kos (*Photo Upload*):** Tidak ada fitur penyimpanan dan penayangan file foto kos pada versi 1.
+7. **Peta Interaktif (*Interactive Maps*):** Tidak ada visualisasi peta GPS atau penunjuk rute berbasis peta.
+8. **Pagination & Infinite Scrolling:** Data kos dimuat secara langsung sebagai daftar biasa dari backend.
+9. **Penambahan Fasilitas Kustom:** Pemilik tidak dapat menambahkan nama fasilitas sendiri di luar 3 pilihan tetap.
+10. **Pilihan Periode Sewa Selain Bulanan:** Tidak ada opsi harga sewa harian, mingguan, atau tahunan.
 
 ---
 
-## 3. Spesifikasi Kebutuhan & Acceptance Criteria (US01 - US08)
+## 3. Kebutuhan Fungsional (Functional Requirements)
+
+Seluruh kebutuhan fungsional diturunkan secara langsung dari kebutuhan pada `user-story.md` dan keputusan rilis Versi 1:
+
+| ID FR | Kebutuhan Fungsional | Deskripsi Kebutuhan | User Story Asal |
+|---|---|---|---|
+| **FR01** | Menampilkan Daftar Kos Publik | Sistem harus dapat memuat dan menampilkan daftar seluruh kos aktif ke pengguna (pencari kos) tanpa kewajiban login, memuat ringkasan nama kos, area, harga sewa per bulan (Rp/bulan), dan ketersediaan kamar. | US01 |
+| **FR02** | Pencarian Area Berbasis Teks Bebas | Sistem harus menyediakan kolom input pencarian teks bebas (*free-text input*) dan menyaring daftar kos yang memiliki area atau alamat yang cocok dengan kata kunci yang dimasukkan pencari kos. | US02 |
+| **FR03** | Penyaringan Berdasarkan Harga Maksimum per Bulan | Sistem harus menyediakan kontrol filter untuk menyaring daftar kos dengan batasan harga sewa maksimum dalam satuan Rupiah per bulan (Rp/bulan). | US03 |
+| **FR04** | Penyaringan Berdasarkan Fasilitas Tetap | Sistem harus menyediakan kontrol filter berupa *checkbox* untuk menyaring daftar kos berdasarkan fasilitas tetap (WiFi, Kamar Mandi Dalam, Parkir). | US03 |
+| **FR05** | Menampilkan Rincian Lengkap Kos | Sistem harus menampilkan halaman detail lengkap suatu kos tanpa login, memuat: nama kos, alamat lengkap, harga per bulan, daftar fasilitas, deskripsi, dan jumlah kamar tersedia. | US04 |
+| **FR06** | Menampilkan Kontak Telepon/WhatsApp Pemilik | Sistem harus menampilkan nomor telepon/WhatsApp pemilik kos pada halaman detail kos agar pencari kos dapat menghubungi pemilik secara manual tanpa fitur chat aplikasi. | US04 |
+| **FR07** | Pendaftaran Akun Pemilik Kos | Sistem harus menyediakan formulir pendaftaran pemilik kos yang hanya membutuhkan email unik dan kata sandi, serta mengarahkan ke halaman login setelah registrasi sukses. | US05 |
+| **FR08** | Masuk (Login) Akun Pemilik Kos | Sistem harus memvalidasi kredensial (email dan kata sandi) pemilik kos dan memberikan sesi otentikasi aktif untuk mengakses modul pengelolaan kos. | US05 |
+| **FR09** | Keluar (Logout) Akun Pemilik Kos | Sistem harus memungkinkan pemilik kos untuk mengakhiri sesi aktif (*logout*), menghapus sesi/token, dan mengembalikan antarmuka ke mode publik. | US05 |
+| **FR10** | Menambahkan Data Kos Baru | Sistem harus memungkinkan pemilik kos yang telah login untuk menambahkan kos baru dengan mengisi nama, alamat, nomor telepon/WhatsApp, harga per bulan, fasilitas tetap via checkbox, deskripsi, dan kamar tersedia (>= 0). | US06 |
+| **FR11** | Mengubah Data Kos Milik Sendiri | Sistem harus memungkinkan pemilik kos untuk memperbarui informasi data kos yang dimilikinya sendiri dan menolak pengubahan terhadap kos milik pemilik lain. | US07 |
+| **FR12** | Menghapus Data Kos Milik Sendiri | Sistem harus memungkinkan pemilik kos untuk menghapus data kos yang dimilikinya sendiri dari sistem melalui dialog konfirmasi, serta menolak penghapusan terhadap kos milik orang lain. | US07 |
+| **FR13** | Memperbarui Jumlah Kamar Tersedia | Sistem harus menyediakan antarmuka bagi pemilik kos untuk memperbarui jumlah kamar tersedia (>= 0) pada kos miliknya, dan langsung merefleksikan perubahan ke publik. | US08 |
+
+---
+
+## 4. Kebutuhan Non-Fungsional (Non-Functional Requirements)
+
+Kebutuhan non-fungsional disusun untuk menjamin kualitas aplikasi pada aspek keamanan, keandalan, kemudahan penggunaan, performa, dan privasi:
+
+### NFR01: Keamanan (Security) – Penegakan Otorisasi Data Kos Berbasis Row Level Security (RLS) di Backend
+- **Deskripsi:**  
+  Sistem wajib menjamin bahwa pemilik kos hanya dapat mengubah (*UPDATE*) dan menghapus (*DELETE*) data kos miliknya sendiri. Penegakan hak akses otorisasi ini **wajib ditegakkan di level database backend menggunakan Supabase Row Level Security (RLS)**, dan **tidak boleh hanya mengandalkan penyembunyian tombol pada antarmuka aplikasi Flutter**.
+- **Cara Pengujian:**  
+  1. Siapkan data "Kos A" yang terdaftar atas nama Akun Pemilik A.
+  2. Lakukan login sebagai Akun Pemilik B melalui aplikasi/API untuk mendapatkan *access token / JWT* resmi milik Pemilik B.
+  3. Menggunakan alat pengujian API (seperti cURL, Postman, atau script tes integrasi), kirimkan request HTTP langsung ke endpoint REST API Supabase (melewati/bypassing antarmuka Flutter) menggunakan token Pemilik B:
+     - Request UPDATE: `PATCH /rest/v1/kos?id=eq.<ID_Kos_A>` dengan payload perubahan nama atau harga.
+     - Request DELETE: `DELETE /rest/v1/kos?id=eq.<ID_Kos_A>`.
+  4. Periksa kondisi data "Kos A" di database setelah request dieksekusi. Pengujian dinyatakan **berhasil (PASS)** jika data "Kos A" tetap utuh tanpa perubahan nilai atribut dan tidak terhapus dari database. Pengujian dinyatakan **gagal (FAIL)** jika data milik Pemilik A berubah atau terhapus, terlepas dari status kode HTTP yang dikembalikan oleh backend (apakah 403, 401, 404, atau 200/204 dengan 0 rows affected).
+
+### NFR02: Keamanan (Security) – Proteksi Kredensial dan Enkripsi Komunikasi
+- **Deskripsi:**  
+  Seluruh komunikasi antara aplikasi Flutter dan backend Supabase wajib menggunakan protokol terenkripsi HTTPS/TLS. Manajemen autentikasi pemilik kos wajib menggunakan layanan Supabase Auth yang secara otomatis mengelola hashing kata sandi dengan algoritma kriptografi yang aman (seperti bcrypt), sehingga kata sandi tidak pernah disimpan dalam bentuk teks biasa (*plaintext*).
+- **Cara Pengujian:**  
+  1. Periksa konfigurasi proyek Flutter dan Supabase Client untuk memastikan URL endpoint backend menggunakan protokol aman `https://`.
+  2. Pantau lalu lintas jaringan (network traffic) menggunakan network inspector / web debugging proxy untuk memastikan seluruh request autentikasi (sign-up, sign-in) terenkripsi saat transit.
+  3. Verifikasi implementasi kode autentikasi bahwa proses pendaftaran dan login sepenuhnya mendelegasikan penanganan kredensial ke fungsi resmi Supabase Auth (`supabase.auth.signUp()` dan `supabase.auth.signInWithPassword()`), tanpa ada penyimpanan lokal atau pengiriman kata sandi mentah ke tabel aplikasi kustom.
+
+### NFR03: Keandalan (Reliability) – Penanganan Kesalahan Jaringan dan Konsistensi Data Formulir
+- **Deskripsi:**  
+  Aplikasi harus menangani kegagalan jaringan atau server yang tidak merespons secara anggun (*graceful error handling*) tanpa mengalami *crash* atau *freeze*. Pada halaman pemuatan data yang telah ditentukan dalam acceptance criteria (halaman daftar kos dan detail kos), sistem wajib menyediakan tombol coba lagi (*Retry*). Pada seluruh formulir (pendaftaran, login, tambah kos, ubah kos), aplikasi wajib menampilkan pesan kesalahan yang ramah pengguna saat koneksi gagal dan tidak mengosongkan data yang telah diketikkan pengguna.
+- **Cara Pengujian:**  
+  1. Jalankan aplikasi pada perangkat/emulator, lalu matikan koneksi internet (aktifkan Airplane Mode atau matikan sambungan jaringan).
+  2. Buka halaman daftar kos dan detail kos: verifikasi aplikasi tidak *crash*, menampilkan pesan kesalahan jaringan yang jelas, dan menyediakan tombol *Retry*.
+  3. Isi data pada formulir tambah kos, ubah kos, atau autentikasi, lalu tekan tombol aksi (simpan/daftar/masuk) dalam kondisi offline: verifikasi aplikasi tidak *crash*, menampilkan notifikasi kesalahan jaringan, dan data yang telah diketikkan pada form tetap bertahan (tidak terhapus/reset).
+  4. Aktifkan kembali internet, tekan tombol *Retry* pada halaman pemuatan data, dan pastikan data berhasil dimuat normal.
+
+### NFR04: Kemudahan Penggunaan (Usability) – Akses Tamu Tanpa Hambatan dan Kejelasan Validasi
+- **Deskripsi:**  
+  Aplikasi harus memberikan pengalaman tanpa hambatan (*zero-friction*) bagi pencari kos, di mana pencari kos dapat melihat daftar, mencari area, memfilter fasilitas, dan melihat detail kos tanpa diminta mendaftar atau login. Seluruh kolom formulir harus memiliki indikator yang jelas dan pesan kesalahan validasi yang muncul langsung di dekat field yang bermasalah.
+- **Cara Pengujian:**  
+  1. Lakukan instalasi baru (*clean state*) dan jalankan alur pencarian kos secara penuh (buka aplikasi, cari area, filter fasilitas, buka detail) tanpa melakukan autentikasi apa pun. Pastikan tidak ada dialog login yang muncul atau menghalangi aksi.
+  2. Buka formulir input (misal Tambah Kos atau Registrasi), kosongkan kolom wajib dan tekan tombol simpan; pastikan pesan validasi spesifik langsung muncul pada masing-masing field.
+
+### NFR05: Performa (Performance) – Responsivitas UI dan Kecepatan Pemuatan Data
+- **Deskripsi:**  
+  Antarmuka aplikasi harus responsif dengan menampilkan umpan balik visual (*loading indicator* atau *progress state*) dalam waktu kurang dari 200 ms setelah aksi pengguna dipicu. Pada kondisi dataset acuan berupa 20 data kos aktif di backend, seluruh daftar kos harus selesai dimuat dan dirender di layar dalam waktu kurang dari 2 detik. Pengujian dilakukan menggunakan perangkat fisik Android atau emulator dengan RAM minimal 4 GB serta koneksi internet stabil (kecepatan unduh minimal 10 Mbps dan latency di bawah 100 ms). Pengukuran durasi dilakukan sejak pengguna membuka halaman daftar kos sampai seluruh 20 data kos selesai ditampilkan.
+- **Cara Pengujian:**  
+  1. Siapkan dataset pengujian yang konsisten berupa 20 data kos aktif yang tersedia di backend Supabase.
+  2. Siapkan lingkungan pengujian acuan menggunakan perangkat Android fisik atau emulator dengan spesifikasi RAM minimal 4 GB serta koneksi internet stabil (kecepatan unduh minimal 10 Mbps dan latency di bawah 100 ms).
+  3. Buka halaman daftar kos, lalu gunakan Flutter DevTools (tab *Performance* & *Network*) atau utilitas *Stopwatch* terukur pada kode aplikasi untuk mencatat waktu.
+  4. Verifikasi bahwa umpan balik visual (*loading indicator*) muncul dalam waktu kurang dari 200 ms sejak pengguna membuka halaman.
+  5. Ukur total waktu dari saat pengguna membuka halaman daftar kos hingga seluruh 20 data kos selesai dimuat dan dirender di layar; pastikan total waktu berada di bawah 2 detik.
+
+### NFR06: Privasi (Privacy) – Prinsip Minimalisasi Pengumpulan Data Pengguna
+- **Deskripsi:**  
+  Aplikasi menerapkan prinsip minimalisasi data (*data minimization*). Sistem hanya mengumpulkan data yang mutlak diperlukan untuk operasional aplikasi (email dan password untuk akun pemilik; nomor kontak pemilik untuk dicantumkan pada kos). Aplikasi tidak meminta izin akses perangkat yang tidak relevan (seperti lokasi GPS latar belakang, akses kontak pribadi, kamera, atau penyimpanan internal).
+- **Cara Pengujian:**  
+  1. Periksa berkas konfigurasi izin perangkat (`AndroidManifest.xml` pada Android dan `Info.plist` pada iOS) dan pastikan tidak terdapat deklarasi izin seperti `ACCESS_FINE_LOCATION`, `READ_CONTACTS`, atau `CAMERA`.
+  2. Verifikasi skema database Supabase bahwa tidak ada tabel atau kolom yang merekam data pribadi pencari kos tamu.
+
+---
+
+## 5. Spesifikasi Kebutuhan & Acceptance Criteria (US01 - US08)
 
 Format acceptance criteria menggunakan struktur standar:
 - **Given** (Kondisi awal/prasyarat)
@@ -228,7 +321,24 @@ Format acceptance criteria menggunakan struktur standar:
 
 ---
 
-## 4. Matriks Skenario Khusus yang Wajib Dicakup
+## 6. Traceability Matrix
+
+Matriks berikut memetakan keterkaitan utuh antara setiap *User Story*, *Functional Requirement* (FR), dan *Acceptance Criteria* (AC) yang mengujinya:
+
+| User Story | Functional Requirement (FR) | Acceptance Criteria (AC) |
+|---|---|---|
+| **US01: Melihat Daftar Kos** | **FR01** (Menampilkan Daftar Kos Publik) | AC01-1, AC01-2, AC01-3 |
+| **US02: Mencari Kos Berdasarkan Area** | **FR02** (Pencarian Area Berbasis Teks Bebas) | AC02-1, AC02-2, AC02-3 |
+| **US03: Menyaring Berdasarkan Harga & Fasilitas** | **FR03** (Penyaringan Harga Maksimum per Bulan)<br>**FR04** (Penyaringan Fasilitas Tetap) | AC03-1, AC03-2 |
+| **US04: Melihat Detail Kos** | **FR05** (Menampilkan Rincian Lengkap Kos)<br>**FR06** (Menampilkan Kontak Pemilik) | AC04-1, AC04-2, AC04-3 |
+| **US05: Pendaftaran, Masuk, Keluar Pemilik** | **FR07** (Pendaftaran Akun Pemilik Kos)<br>**FR08** (Masuk/Login Akun Pemilik Kos)<br>**FR09** (Keluar/Logout Akun Pemilik Kos) | AC05-1, AC05-2, AC05-3, AC05-4, AC05-5, AC05-6 |
+| **US06: Menambahkan Kos** | **FR10** (Menambahkan Data Kos Baru) | AC06-1, AC06-2, AC06-3, AC06-4 |
+| **US07: Mengubah & Menghapus Kos Sendiri** | **FR11** (Mengubah Data Kos Milik Sendiri)<br>**FR12** (Menghapus Data Kos Milik Sendiri) | AC07-1, AC07-2, AC07-3, AC07-4 |
+| **US08: Memperbarui Kamar Tersedia** | **FR13** (Memperbarui Jumlah Kamar Tersedia) | AC08-1, AC08-2, AC08-3, AC08-4 |
+
+---
+
+## 7. Matriks Skenario Khusus yang Wajib Dicakup
 
 | Skenario Khusus | Referensi Acceptance Criteria |
 |---|---|
@@ -240,7 +350,7 @@ Format acceptance criteria menggunakan struktur standar:
 
 ---
 
-## 5. Daftar Pertanyaan & Hal Ambigu (Open Questions)
+## 8. Catatan Klarifikasi & Pertanyaan Terjawab (Open Questions Resolved)
 
 Seluruh pertanyaan dan aspek ambigu yang sebelumnya diidentifikasi telah dibahas dan disepakati secara final untuk ruang lingkup Versi 1:
 - **Kontak Pemilik Kos:** Pemilik mengisi nomor telepon/WhatsApp saat menambah/mengubah kos; nomor kontak ditampilkan di detail kos; fitur chat ditiadakan.
