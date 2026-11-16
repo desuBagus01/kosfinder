@@ -108,25 +108,26 @@ Dokumen ini memuat daftar tugas pengembangan perangkat lunak untuk aplikasi **Ko
 
 ## Slice 2: Pencarian dan Filter
 
-### TASK-2.1: Logika Pencarian Area & Alamat serta Filter pada Repository & Provider
-- **Tujuan Pengerjaan:** Menambahkan fungsi pencarian kata kunci teks bebas (mencocokkan kolom `area` dan `address` via operator OR / ILIKE) serta penyaringan kombinasi harga bulanan maksimum dan fasilitas checkbox (WiFi, kamar mandi dalam, parkir) pada `KosRepository` dan `KosProvider`.
+### TASK-2.1: Logika Pencarian Nama Kos, Area & Alamat serta Filter pada Repository & Provider
+- **Tujuan Pengerjaan:** Menambahkan fungsi pencarian kata kunci teks bebas (mencocokkan kolom `name`, `area`, dan `address` via operator OR / ILIKE) serta penyaringan kombinasi harga bulanan maksimum dan fasilitas checkbox (WiFi, kamar mandi dalam, parkir) pada `KosRepository` dan `KosProvider`.
 - **Requirement Terkait:** FR02, FR03, FR04, US02, US03.
 - **Acceptance Criteria Terkait:** AC02-1, AC02-2, AC02-3, AC03-1, AC03-2.
 - **Daftar File yang Boleh Dibuat / Diubah:**
+  - `lib/services/supabase_kos_service.dart`
   - `lib/repositories/kos_repository.dart`
   - `lib/providers/kos_provider.dart`
   - `test/providers/kos_provider_search_test.dart`
 - **Langkah Pengujian:**
-  1. Jalankan unit test `kos_provider_search_test.dart` untuk memverifikasi pencarian *case-insensitive* kata kunci area: lakukan pencarian kata `"singaraja"` dan kata `"Singaraja"`, pastikan hasil pencarian keduanya sama persis karena menggunakan pencocokan ILIKE.
+  1. Jalankan unit test `kos_provider_search_test.dart` untuk memverifikasi pencarian *case-insensitive* kata kunci nama kos (misal: "Mawar" dan "mawar"), serta area: lakukan pencarian kata `"singaraja"` dan kata `"Singaraja"`, pastikan hasil pencarian keduanya sama persis karena menggunakan pencocokan ILIKE.
   2. Uji pencarian nama jalan pada kolom `address`.
   3. Uji filter harga maksimum Rp 1.500.000 dan centang fasilitas WiFi + Kamar Mandi Dalam: pastikan hanya data yang memenuhi seluruh kriteria yang lolos saring.
   4. Uji kondisi pencarian/filter tidak menemukan hasil: pastikan list hasil kosong tanpa menimbulkan error.
-- **Status:** Pending
+- **Status:** In Progress
 
 ---
 
 ### TASK-2.2: Implementasi Antarmuka Pencarian Teks Bebas pada Daftar Kos
-- **Tujuan Pengerjaan:** Menambahkan kolom input pencarian teks bebas (*free-text input*) pada `KosListScreen` tanpa dropdown atau autocomplete wilayah, yang mengeksekusi pencarian area/alamat, menampilkan pesan tidak ditemukan jika tidak ada hasil, dan mempertahankan teks pencarian saat jaringan gagal.
+- **Tujuan Pengerjaan:** Menambahkan kolom input pencarian teks bebas (*free-text input*) pada `KosListScreen` tanpa dropdown atau autocomplete wilayah, yang mengeksekusi pencarian nama kos, area, atau alamat, menampilkan pesan tidak ditemukan jika tidak ada hasil, dan mempertahankan teks pencarian saat jaringan gagal.
 - **Requirement Terkait:** FR02, US02.
 - **Acceptance Criteria Terkait:** AC02-1, AC02-2, AC02-3, NFR03, NFR04.
 - **Daftar File yang Boleh Dibuat / Diubah:**

@@ -24,7 +24,7 @@ class KosRepository {
   final SupabaseKosService _service;
 
   KosRepository({SupabaseKosService? kosService})
-      : _service = kosService ?? SupabaseKosService();
+    : _service = kosService ?? SupabaseKosService();
 
   /// Mengambil seluruh data kos publik.
   /// Mengembalikan list kosong `[]` jika belum ada kos yang terdaftar.
@@ -75,20 +75,14 @@ class KosRepository {
       }
       return KosModel.fromJson(rawData);
     } on SocketException catch (e) {
-      throw KosException(
-        'Gagal memuat detail kos. Periksa koneksi Anda.',
-        e,
-      );
+      throw KosException('Gagal memuat detail kos. Periksa koneksi Anda.', e);
     } on TimeoutException catch (e) {
       throw KosException(
         'Koneksi waktu habis saat memuat detail kos. Silakan coba kembali.',
         e,
       );
     } on FormatException catch (e) {
-      throw KosException(
-        'Format data detail kos tidak valid: ${e.message}',
-        e,
-      );
+      throw KosException('Format data detail kos tidak valid: ${e.message}', e);
     } on KosException {
       rethrow;
     } catch (e) {
@@ -99,12 +93,12 @@ class KosRepository {
     }
   }
 
-  /// Mengambil daftar kos dengan pencarian kata kunci area/alamat via Supabase OR / ILIKE
+  /// Mengambil daftar kos dengan pencarian kata kunci nama/area/alamat via Supabase OR / ILIKE
   /// serta filter kombinasi harga dan fasilitas pada lapisan Repository.
   ///
-  /// - [keyword]: Kata kunci untuk mencocokkan kolom `area` atau `address`
+  /// - [keyword]: Kata kunci untuk mencocokkan kolom `name`, `area`, atau `address`
   ///   secara case-insensitive menggunakan query Supabase:
-  ///   `or('area.ilike.%$keyword%,address.ilike.%$keyword%')`.
+  ///   `or('name.ilike.%$keyword%,area.ilike.%$keyword%,address.ilike.%$keyword%')`.
   /// - [maxPrice]: Batas harga maksimum per bulan (Rp/bulan) yang disaring di Repository.
   /// - [mustHaveWifi]: Jika `true`, hanya kos yang memiliki fasilitas WiFi (kondisi AND).
   /// - [mustHaveBathroom]: Jika `true`, hanya kos yang memiliki kamar mandi dalam (kondisi AND).

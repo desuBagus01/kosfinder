@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Service untuk menangani interaksi teknis langsung dengan Supabase PostgreSQL
@@ -40,9 +41,9 @@ class SupabaseKosService {
   }
 
   /// Mengambil data kos berdasarkan kata kunci teks bebas yang mencocokkan
-  /// kolom `area` atau `address` menggunakan operator OR / ILIKE.
+  /// kolom `name`, `area`, atau `address` menggunakan operator OR / ILIKE.
   /// Pola query sesuai docs/architecture.md Subbab 3.3:
-  /// `or('area.ilike.%$keyword%,address.ilike.%$keyword%')`
+  /// `or('name.ilike.%$keyword%,area.ilike.%$keyword%,address.ilike.%$keyword%')`
   Future<List<Map<String, dynamic>>> searchKos(String keyword) async {
     final trimmed = keyword.trim();
     if (trimmed.isEmpty) {
@@ -53,7 +54,9 @@ class SupabaseKosService {
       final response = await _supabaseClient
           .from('kos')
           .select()
-          .or('area.ilike.%$trimmed%,address.ilike.%$trimmed%')
+          .or(
+            'name.ilike.%$trimmed%,area.ilike.%$trimmed%,address.ilike.%$trimmed%',
+          )
           .order('created_at', ascending: false);
 
       return List<Map<String, dynamic>>.from(response);

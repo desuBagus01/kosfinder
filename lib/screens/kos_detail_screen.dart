@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/kos_provider.dart';
+import '../theme/app_theme.dart';
 import '../widgets/kos_card_widget.dart';
 
 /// Halaman rincian detail kos KosFinder.
 /// Menampilkan seluruh informasi lengkap kos dan kontak pemilik tanpa kewajiban login.
+/// Mengadopsi prinsip desain Modern Minimalist dengan Blue Theme.
 /// Memenuhi FR05, FR06, US04, AC04-1, AC04-2, AC04-3, NFR04.
 class KosDetailScreen extends StatefulWidget {
   final String kosId;
@@ -78,51 +80,68 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
       appBar: AppBar(
         title: const Text(
           'Detail Kos',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Consumer<KosProvider>(
         builder: (context, provider, child) {
           // 1. Kondisi Sedang Memuat Data
           if (provider.isLoadingDetail) {
             return const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(color: AppColors.primary),
             );
           }
 
           // 2. Kondisi Gagal Memuat atau Kos Tidak Ditemukan
           if (provider.errorMessage != null && provider.selectedKos == null) {
-            final isNotFound = provider.errorMessage!
-                .contains('tidak ditemukan atau sudah tidak tersedia');
+            final isNotFound = provider.errorMessage!.contains(
+              'tidak ditemukan atau sudah tidak tersedia',
+            );
             return Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      isNotFound ? Icons.search_off : Icons.wifi_off_rounded,
-                      size: 64,
-                      color: isNotFound
-                          ? Colors.orange.shade400
-                          : Colors.red.shade400,
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: isNotFound
+                            ? AppColors.warningLight
+                            : AppColors.errorLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isNotFound ? Icons.search_off : Icons.wifi_off_rounded,
+                        size: 48,
+                        color: isNotFound ? AppColors.warning : AppColors.error,
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
+                    Text(
+                      isNotFound ? 'Kos Tidak Ditemukan' : 'Gangguan Koneksi',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       isNotFound
                           ? 'Kos tidak ditemukan atau sudah tidak tersedia'
                           : provider.errorMessage!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                        height: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back),
+                      icon: const Icon(Icons.arrow_back, size: 20),
                       label: const Text('Kembali'),
                     ),
                   ],
@@ -140,7 +159,7 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
           final isFull = kos.availableRooms == 0;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -152,8 +171,10 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
                       child: Text(
                         kos.name,
                         style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -0.4,
                         ),
                       ),
                     ),
@@ -161,54 +182,108 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
-                        vertical: 6,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
                         color: isFull
-                            ? Colors.red.shade100
-                            : Colors.green.shade100,
+                            ? AppColors.errorLight
+                            : AppColors.successLight,
                         borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isFull
+                              ? AppColors.errorBorder
+                              : AppColors.successBorder,
+                          width: 1,
+                        ),
                       ),
                       child: Text(
-                        isFull ? 'Kamar Penuh' : 'Sisa ${kos.availableRooms} kamar',
+                        isFull
+                            ? 'Kamar Penuh'
+                            : 'Sisa ${kos.availableRooms} kamar',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: isFull
-                              ? Colors.red.shade800
-                              : Colors.green.shade800,
+                          color: isFull ? AppColors.error : AppColors.success,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 14),
 
-                // ── Harga Per Bulan ──────────────────────────────────────
-                Text(
-                  KosCardWidget.formatPrice(kos.pricePerMonth),
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+                // ── Highlight Harga Bulanan ──────────────────────────────
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: const Color(0xFFBFDBFE),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Tarif Sewa',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+                      Text(
+                        KosCardWidget.formatPrice(kos.pricePerMonth),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
                 const Divider(),
 
-                // ── Alamat ───────────────────────────────────────────────
+                // ── Alamat & Area ────────────────────────────────────────
                 _SectionTitle(icon: Icons.location_on, label: 'Alamat'),
-                const SizedBox(height: 6),
-                Text(
-                  kos.address,
-                  style: const TextStyle(fontSize: 15),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Area: ${kos.area}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        kos.address,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: AppColors.textPrimary,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Area: ${kos.area}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -217,7 +292,7 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
                 _SectionTitle(icon: Icons.star_outline, label: 'Fasilitas'),
                 const SizedBox(height: 10),
                 Wrap(
-                  spacing: 10,
+                  spacing: 8,
                   runSpacing: 8,
                   children: [
                     _FacilityChip(
@@ -240,11 +315,27 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
                 const SizedBox(height: 20),
 
                 // ── Deskripsi ────────────────────────────────────────────
-                _SectionTitle(icon: Icons.description_outlined, label: 'Deskripsi'),
-                const SizedBox(height: 6),
-                Text(
-                  kos.description,
-                  style: const TextStyle(fontSize: 15, height: 1.5),
+                _SectionTitle(
+                  icon: Icons.description_outlined,
+                  label: 'Deskripsi',
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Text(
+                    kos.description,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                      height: 1.5,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
 
@@ -254,25 +345,37 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
                   icon: Icons.phone_outlined,
                   label: 'Kontak Pemilik',
                 ),
-                const SizedBox(height: 8),
-                // Tampilan nomor
+                const SizedBox(height: 10),
+                // Tampilan nomor kontak
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey.shade300),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.phone, color: Colors.grey.shade700),
-                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryLight,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.phone,
+                          size: 18,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           kos.contactNumber,
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ),
@@ -280,7 +383,8 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Tombol Telepon dan WhatsApp
+
+                // Tombol Aksi: Telepon & WhatsApp
                 Row(
                   children: [
                     Expanded(
@@ -288,10 +392,10 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
                         key: const Key('btn_phone'),
                         onPressed: () =>
                             _launchPhone(context, kos.contactNumber),
-                        icon: const Icon(Icons.call),
+                        icon: const Icon(Icons.call, size: 18),
                         label: const Text('Telepon'),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          minimumSize: const Size(0, 48),
                         ),
                       ),
                     ),
@@ -301,21 +405,27 @@ class _KosDetailScreenState extends State<KosDetailScreen> {
                         key: const Key('btn_whatsapp'),
                         onPressed: () =>
                             _launchWhatsApp(context, kos.contactNumber),
-                        icon: const Icon(Icons.chat),
+                        icon: const Icon(Icons.chat, size: 18),
                         label: const Text('WhatsApp'),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
                           backgroundColor: const Color(0xFF25D366),
                           foregroundColor: Colors.white,
+                          minimumSize: const Size(0, 48),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Hubungi pemilik melalui telepon atau WhatsApp secara langsung.',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                const SizedBox(height: 10),
+                const Center(
+                  child: Text(
+                    'Hubungi pemilik melalui telepon atau WhatsApp secara langsung.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 const SizedBox(height: 32),
               ],
@@ -338,13 +448,14 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 6),
+        Icon(icon, size: 18, color: AppColors.primary),
+        const SizedBox(width: 8),
         Text(
           label,
           style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
           ),
         ),
       ],
@@ -367,12 +478,13 @@ class _FacilityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: active ? Colors.green.shade50 : Colors.grey.shade100,
+        color: active ? AppColors.primaryLight : AppColors.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: active ? Colors.green.shade300 : Colors.grey.shade300,
+          color: active ? const Color(0xFFBFDBFE) : AppColors.border,
+          width: 1,
         ),
       ),
       child: Row(
@@ -381,15 +493,15 @@ class _FacilityChip extends StatelessWidget {
           Icon(
             icon,
             size: 16,
-            color: active ? Colors.green.shade700 : Colors.grey.shade400,
+            color: active ? AppColors.primary : AppColors.textSecondary,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: active ? Colors.green.shade800 : Colors.grey.shade500,
+              fontWeight: FontWeight.w600,
+              color: active ? AppColors.primaryDark : AppColors.textSecondary,
             ),
           ),
         ],

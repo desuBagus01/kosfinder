@@ -167,13 +167,13 @@ Sesuai prinsip kesederhanaan (*KISS*) dan batasan ruang lingkup Versi 1, aplikas
 - **Tidak Memerlukan Kolom Status/Draf:** Versi 1 tidak memerlukan kolom `is_active` maupun fitur sakelar Draf/Aktif.
 - **Ketersediaan Kamar:** Nilai `available_rooms = 0` merepresentasikan bahwa kamar kos sedang penuh (*Kamar Penuh*), dan **bukan** berarti kos tersebut disembunyikan dari daftar publik. Data kos tetap ditampilkan dengan penanda kamar habis agar pencari kos mengetahui status ketersediaannya (US08, AC08-3).
 
-### 3.3 Strategi Query Pencarian Area dan Alamat (FR02) serta Performa
-Pencarian berbasis kata kunci teks bebas (FR02) diterapkan secara fleksibel pada **dua kolom**: kolom `area` dan kolom `address`.
+### 3.3 Strategi Query Pencarian Nama Kos, Area, dan Alamat (FR02) serta Performa
+Pencarian berbasis kata kunci teks bebas (FR02) diterapkan secara fleksibel pada **tiga kolom**: kolom `name`, kolom `area`, dan kolom `address`.
 - **Strategi Query:** Pada lapisan Service/Repository, aplikasi mengirimkan filter gabungan menggunakan operator OR pada Supabase Client SDK dengan pencocokan *case-insensitive* (`ilike`):
   ```dart
-  supabase.from('kos').select().or('area.ilike.%$keyword%,address.ilike.%$keyword%');
+  supabase.from('kos').select().or('name.ilike.%$keyword%,area.ilike.%$keyword%,address.ilike.%$keyword%');
   ```
-- **Karakteristik Indeks & Sequential Scan:** Karena pencarian substring menggunakan karakter wildcard di awal kata (`%keyword%`), indeks B-tree standar pada PostgreSQL **tidak dapat digunakan secara efektif** untuk mempercepat pencarian pola tersebut. Untuk target awal sekitar 20 data kos (sesuai spesifikasi pengujian NFR05), pembacaan berurutan (*Sequential Scan*) oleh basis data diperkirakan memadai untuk memenuhi target antarmuka. Performa aktual dari strategi query ini akan diverifikasi secara langsung melalui pengujian NFR05 pada lingkungan pengujian yang telah ditentukan. Oleh karena itu, indeks B-tree pada kolom `area` dan `address` ditiadakan, serta ekstensi tambahan seperti `pg_trgm` / indeks GIN sengaja tidak ditambahkan demi menjaga kesederhanaan skema Versi 1 (*KISS*).
+- **Karakteristik Indeks & Sequential Scan:** Karena pencarian substring menggunakan karakter wildcard di awal kata (`%keyword%`), indeks B-tree standar pada PostgreSQL **tidak dapat digunakan secara efektif** untuk mempercepat pencarian pola tersebut. Untuk target awal sekitar 20 data kos (sesuai spesifikasi pengujian NFR05), pembacaan berurutan (*Sequential Scan*) oleh basis data diperkirakan memadai untuk memenuhi target antarmuka. Performa aktual dari strategi query ini akan diverifikasi secara langsung melalui pengujian NFR05 pada lingkungan pengujian yang telah ditentukan. Oleh karena itu, indeks B-tree pada kolom `name`, `area`, dan `address` ditiadakan, serta ekstensi tambahan seperti `pg_trgm` / indeks GIN sengaja tidak ditambahkan demi menjaga kesederhanaan skema Versi 1 (*KISS*).
 - **Indeks yang Tetap Digunakan:** Indeks B-tree tetap dipertahankan untuk kolom yang menggunakan perbandingan langsung atau pengurutan terindeks:
   - `idx_kos_price_per_month` untuk filter rentang numerik (`price_per_month <= max_price`).
   - `idx_kos_owner_id` untuk query filter kos milik akun pemilik yang sedang login.

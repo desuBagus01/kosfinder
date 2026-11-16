@@ -29,7 +29,7 @@ class KosProvider extends ChangeNotifier {
   bool _isFiltered = false;
 
   KosProvider({KosRepository? repository})
-      : _repository = repository ?? KosRepository();
+    : _repository = repository ?? KosRepository();
 
   /// Menunjukkan apakah ada proses pemuatan data yang sedang berlangsung (daftar atau detail).
   bool get isLoading => isLoadingList || isLoadingDetail;
@@ -140,14 +140,14 @@ class KosProvider extends ChangeNotifier {
 
   /// Mengambil daftar kos dengan pencarian teks bebas dan/atau filter kombinasi.
   ///
-  /// - [keyword]: Kata kunci untuk mencocokkan kolom `area` atau `address`
+  /// - [keyword]: Kata kunci untuk mencocokkan kolom `name`, `area`, atau `address`
   ///   secara *case-insensitive*. String kosong berarti tidak ada filter kata kunci.
   /// - [maxPrice]: Batas harga maksimum per bulan. `null` berarti tidak ada batas.
   /// - [mustHaveWifi]: Jika `true`, hanya kos dengan WiFi yang ditampilkan.
   /// - [mustHaveBathroom]: Jika `true`, hanya kos dengan kamar mandi dalam yang ditampilkan.
   /// - [mustHaveParking]: Jika `true`, hanya kos dengan parkir yang ditampilkan.
   ///
-  /// Memenuhi FR02 (pencarian area/alamat), FR03 (filter harga), FR04 (filter fasilitas).
+  /// Memenuhi FR02 (pencarian nama/area/alamat), FR03 (filter harga), FR04 (filter fasilitas).
   /// Memenuhi AC02-1, AC02-2, AC02-3, AC03-1, AC03-2.
   Future<void> fetchKosListFiltered({
     String keyword = '',

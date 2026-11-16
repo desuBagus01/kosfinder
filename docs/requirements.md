@@ -46,7 +46,7 @@ Seluruh kebutuhan fungsional diturunkan secara langsung dari kebutuhan pada `use
 | ID FR | Kebutuhan Fungsional | Deskripsi Kebutuhan | User Story Asal |
 |---|---|---|---|
 | **FR01** | Menampilkan Daftar Kos Publik | Sistem harus dapat memuat dan menampilkan daftar seluruh kos aktif ke pengguna (pencari kos) tanpa kewajiban login, memuat ringkasan nama kos, area, harga sewa per bulan (Rp/bulan), dan ketersediaan kamar. | US01 |
-| **FR02** | Pencarian Area Berbasis Teks Bebas | Sistem harus menyediakan kolom input pencarian teks bebas (*free-text input*) dan menyaring daftar kos yang memiliki area atau alamat yang cocok dengan kata kunci yang dimasukkan pencari kos. | US02 |
+| **FR02** | Pencarian Berbasis Teks Bebas (Nama, Area, Alamat) | Sistem harus menyediakan kolom input pencarian teks bebas (*free-text input*) dan menyaring daftar kos yang memiliki nama kos, area, atau alamat yang cocok dengan kata kunci yang dimasukkan pencari kos. | US02 |
 | **FR03** | Penyaringan Berdasarkan Harga Maksimum per Bulan | Sistem harus menyediakan kontrol filter untuk menyaring daftar kos dengan batasan harga sewa maksimum dalam satuan Rupiah per bulan (Rp/bulan). | US03 |
 | **FR04** | Penyaringan Berdasarkan Fasilitas Tetap | Sistem harus menyediakan kontrol filter berupa *checkbox* untuk menyaring daftar kos berdasarkan fasilitas tetap (WiFi, Kamar Mandi Dalam, Parkir). | US03 |
 | **FR05** | Menampilkan Rincian Lengkap Kos | Sistem harus menampilkan halaman detail lengkap suatu kos tanpa login, memuat: nama kos, alamat lengkap, harga per bulan, daftar fasilitas, deskripsi, dan jumlah kamar tersedia. | US04 |
@@ -148,21 +148,21 @@ Format acceptance criteria menggunakan struktur standar:
 
 ---
 
-### US02: Mencari Kos Berdasarkan Area
-> *Sebagai pencari kos, saya ingin mencari kos berdasarkan area, agar hanya melihat kos di lokasi yang saya inginkan.*
+### US02: Mencari Kos Berdasarkan Nama, Area, dan Alamat
+> *Sebagai pencari kos, saya ingin mencari kos berdasarkan nama kos, area, atau alamat, agar dapat menemukan kos sesuai kebutuhan lokasi dan nama kos yang saya inginkan.*
 
-#### AC02-1: Pencarian berdasarkan kata kunci area yang cocok (Input Teks Bebas)
+#### AC02-1: Pencarian berdasarkan kata kunci nama kos, area, atau alamat yang cocok (Input Teks Bebas)
 - **Given** pengguna berada di halaman daftar kos tanpa perlu login, dan tersedia kolom input pencarian teks bebas (*free-text input*) tanpa dropdown atau autocomplete wilayah.
-- **When** pengguna mengetikkan teks bebas nama jalan, kecamatan, atau area (misal: *"Tembalang"*) pada kolom pencarian dan menekan tombol cari.
-- **Then** sistem menampilkan daftar kos yang memiliki informasi area atau alamat yang cocok dengan kata kunci *"Tembalang"*.
+- **When** pengguna mengetikkan teks bebas nama kos, nama jalan, kecamatan, atau area (misal: *"Mawar"* atau *"Tembalang"*) pada kolom pencarian dan menekan tombol cari.
+- **Then** sistem menampilkan daftar kos yang memiliki informasi nama kos, area, atau alamat yang cocok dengan kata kunci tersebut secara *case-insensitive*.
 
-#### AC02-2: Hasil pencarian area tidak ditemukan
+#### AC02-2: Hasil pencarian tidak ditemukan
 - **Given** pengguna berada di halaman pencarian tanpa login.
-- **When** pengguna memasukkan nama area yang tidak memiliki kos terdaftar (misal: *"AreaTidakAda"*) lalu menekan tombol cari.
-- **Then** sistem menampilkan pesan bahwa kos di area tersebut tidak ditemukan (misal: *"Tidak ditemukan kos di area 'AreaTidakAda'"*) dan menyarankan pengguna untuk mencoba kata kunci lain.
+- **When** pengguna memasukkan kata kunci nama, area, atau alamat yang tidak memiliki kos terdaftar (misal: *"NamaAtauAreaTidakAda"*) lalu menekan tombol cari.
+- **Then** sistem menampilkan pesan bahwa kos dengan kata kunci tersebut tidak ditemukan (misal: *"Tidak ditemukan kos dengan kata kunci 'NamaAtauAreaTidakAda'"*) dan menyarankan pengguna untuk mencoba kata kunci lain.
 
 #### AC02-3: Penanganan kegagalan koneksi jaringan saat melakukan pencarian
-- **Given** pengguna telah mengetikkan kata kunci pencarian area.
+- **Given** pengguna telah mengetikkan kata kunci pencarian.
 - **When** pengguna mengeksekusi pencarian dalam kondisi jaringan terputus atau backend gagal merespons.
 - **Then** sistem menampilkan notifikasi kesalahan koneksi dan teks yang sudah diketikkan pengguna pada kolom pencarian tidak hilang.
 
