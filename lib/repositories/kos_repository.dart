@@ -98,4 +98,68 @@ class KosRepository {
       );
     }
   }
+
+  /// Mengambil daftar kos dengan pencarian kata kunci area/alamat via Supabase OR / ILIKE
+  /// serta filter kombinasi harga dan fasilitas pada lapisan Repository.
+  ///
+  /// - [keyword]: Kata kunci untuk mencocokkan kolom `area` atau `address`
+  ///   secara case-insensitive menggunakan query Supabase:
+  ///   `or('area.ilike.%$keyword%,address.ilike.%$keyword%')`.
+  /// - [maxPrice]: Batas harga maksimum per bulan (Rp/bulan) yang disaring di Repository.
+  /// - [mustHaveWifi]: Jika `true`, hanya kos yang memiliki fasilitas WiFi (kondisi AND).
+  /// - [mustHaveBathroom]: Jika `true`, hanya kos yang memiliki kamar mandi dalam (kondisi AND).
+  /// - [mustHaveParking]: Jika `true`, hanya kos yang memiliki fasilitas parkir (kondisi AND).
+  ///
+  /// Melempar [KosException] jika terjadi gangguan jaringan atau kegagalan query.
+  Future<List<KosModel>> getKosListFiltered({
+    String keyword = '',
+    int? maxPrice,
+    bool mustHaveWifi = false,
+    bool mustHaveBathroom = false,
+    bool mustHaveParking = false,
+  }) async {
+    final trimmedKeyword = keyword.trim();
+
+    List<KosModel> kosList;
+    try {
+      final List<Map<String, dynamic>> rawList;
+      if (trimmedKeyword.isNotEmpty) {
+        rawList = await _service.searchKos(trimmedKeyword);
+      } else {
+        rawList = await _service.fetchKosList();
+      }
+      kosList = rawList.map((map) => KosModel.fromJson(map)).toList();
+    } on SocketException catch (e) {
+      throw KosException(
+        'Gagal memuat data kos. Silakan periksa koneksi internet Anda.',
+        e,
+      );
+    } on TimeoutException catch (e) {
+      throw KosException(
+        'Koneksi waktu habis saat memuat data kos. Silakan coba kembali.',
+        e,
+      );
+    } on FormatException catch (e) {
+      throw KosException(
+        'Format data kos dari server tidak valid: ${e.message}',
+        e,
+      );
+    } on KosException {
+      rethrow;
+    } catch (e) {
+      throw KosException(
+        'Gagal memuat data kos. Terjadi kesalahan pada server.',
+        e,
+      );
+    }
+
+    // Terapkan filter harga dan fasilitas pada Repository dengan kondisi AND
+    return kosList.where((kos) {
+      if (maxPrice != null && kos.pricePerMonth > maxPrice) return false;
+      if (mustHaveWifi && !kos.hasWifi) return false;
+      if (mustHaveBathroom && !kos.hasBathroomInside) return false;
+      if (mustHaveParking && !kos.hasParking) return false;
+      return true;
+    }).toList();
+  }
 }

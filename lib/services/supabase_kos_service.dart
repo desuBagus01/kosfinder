@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Service untuk menangani interaksi teknis langsung dengan Supabase PostgreSQL
 /// melalui Supabase Client untuk entitas Kos.
 ///
-/// Selaras dengan dokumen arsitektur (Subbab 1.1 - Service Layer).
+/// Selaras dengan dokumen arsitektur (Subbab 1.1 - Service Layer dan Subbab 3.3).
 class SupabaseKosService {
   final SupabaseClient? client;
 
@@ -36,6 +36,38 @@ class SupabaseKosService {
         rethrow;
       }
       throw Exception('Terjadi kesalahan saat memuat data kos: $e');
+    }
+  }
+
+  /// Mengambil data kos berdasarkan kata kunci teks bebas yang mencocokkan
+  /// kolom `area` atau `address` menggunakan operator OR / ILIKE.
+  /// Pola query sesuai docs/architecture.md Subbab 3.3:
+  /// `or('area.ilike.%$keyword%,address.ilike.%$keyword%')`
+  Future<List<Map<String, dynamic>>> searchKos(String keyword) async {
+    final trimmed = keyword.trim();
+    if (trimmed.isEmpty) {
+      return fetchKosList();
+    }
+
+    try {
+      final response = await _supabaseClient
+          .from('kos')
+          .select()
+          .or('area.ilike.%$trimmed%,address.ilike.%$trimmed%')
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } on SocketException {
+      rethrow;
+    } on TimeoutException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw Exception('Gagal memuat data dari basis data: ${e.message}');
+    } catch (e) {
+      if (e is SocketException || e is TimeoutException) {
+        rethrow;
+      }
+      throw Exception('Terjadi kesalahan saat mencari data kos: $e');
     }
   }
 
