@@ -1,10 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'providers/kos_provider.dart';
 import 'screens/kos_list_screen.dart';
 
-void main() {
+Future<void> main() async {
+  // 1. Pastikan binding Flutter siap sebelum operasi asynchronous
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 2. Muat konfigurasi dari file .env
+  await dotenv.load(fileName: '.env');
+
+  // 3. Ambil dan validasi konfigurasi Supabase
+  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
+  final supabaseKey = dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '';
+
+  if (supabaseUrl.isEmpty) {
+    throw StateError(
+      'SUPABASE_URL tidak ditemukan atau kosong di file .env. '
+      'Pastikan file .env sudah dikonfigurasi dengan benar.',
+    );
+  }
+  if (supabaseKey.isEmpty) {
+    throw StateError(
+      'SUPABASE_PUBLISHABLE_KEY tidak ditemukan atau kosong di file .env. '
+      'Pastikan file .env sudah dikonfigurasi dengan benar.',
+    );
+  }
+
+  // 4. Inisialisasi Supabase menggunakan publishableKey (supabase_flutter ^2.x)
+  await Supabase.initialize(
+    url: supabaseUrl,
+    publishableKey: supabaseKey,
+  );
+
+  // 5. Jalankan aplikasi
   runApp(const MyApp());
 }
 
