@@ -1,45 +1,39 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:kosfinder/main.dart';
+import 'package:kosfinder/screens/kos_list_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('Smoke test: KosFinder root app renders KosListScreen without errors', (WidgetTester tester) async {
+    // Build root app dan trigger frame
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verifikasi bahwa halaman KosListScreen dimuat
+    expect(find.byType(KosListScreen), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verifikasi judul AppBar utama
+    expect(find.text('KosFinder'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
-
-  testWidgets('Navigates to About page and displays student identity', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify info icon is present in AppBar.
+    // Verifikasi ikon info About tersedia di AppBar
     expect(find.byIcon(Icons.info_outline), findsOneWidget);
 
-    // Tap the info icon and trigger navigation.
+    // Verifikasi tidak ada dialog login atau pembatasan autentikasi yang memblokir pengguna
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets('Navigates to About page via named route and displays student identity', (WidgetTester tester) async {
+    // Build root app dan trigger frame
+    await tester.pumpWidget(const MyApp());
+
+    // Verifikasi info icon ada di AppBar
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
+
+    // Ketuk tombol info dan picu navigasi ke named route '/about'
     await tester.tap(find.byIcon(Icons.info_outline));
     await tester.pumpAndSettle();
 
-    // Verify that About page title and identity are displayed.
+    // Verifikasi halaman About terbuka dan menampilkan identitas baku pengembang
+    expect(find.byType(AboutPage), findsOneWidget);
     expect(find.text('About'), findsOneWidget);
     expect(find.text('2415051014 - Gede Supadma'), findsOneWidget);
   });
