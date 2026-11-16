@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/kos_model.dart';
 import '../providers/kos_provider.dart';
 import '../widgets/kos_card_widget.dart';
+import 'kos_detail_screen.dart';
 
 /// Halaman utama aplikasi KosFinder yang menampilkan daftar seluruh kos secara publik.
 /// Pengguna (pencari kos) dapat melihat daftar kos tanpa perlu melakukan login.
@@ -152,14 +154,22 @@ class _KosListScreenState extends State<KosListScreen> {
                 final kos = provider.kosList[index];
                 return KosCardWidget(
                   kos: kos,
-                  onTap: () {
-                    // Navigasi ke detail kos akan diimplementasikan pada TASK-1.5
-                  },
+                  onTap: () => _navigateToDetail(context, kos),
                 );
               },
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// Navigasi ke halaman detail kos berdasarkan ID kos yang dipilih.
+  void _navigateToDetail(BuildContext context, KosModel kos) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => KosDetailScreen(kosId: kos.id),
       ),
     );
   }
