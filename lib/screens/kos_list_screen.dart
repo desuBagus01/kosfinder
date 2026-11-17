@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/kos_card_widget.dart';
 import '../widgets/kos_filter_bottom_sheet.dart';
 import 'kos_detail_screen.dart';
+import 'login_screen.dart';
 
 /// Halaman utama aplikasi KosFinder yang menampilkan daftar seluruh kos secara publik.
 /// Mengadopsi prinsip desain Modern Minimalist dengan Blue Theme.
@@ -131,6 +132,24 @@ class _KosListScreenState extends State<KosListScreen> {
           ],
         ),
         actions: [
+          TextButton.icon(
+            key: const Key('btn_nav_login'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
+            },
+            icon: const Icon(Icons.login_rounded, size: 18),
+            label: const Text(
+              'Masuk',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.info_outline),
             tooltip: 'About',

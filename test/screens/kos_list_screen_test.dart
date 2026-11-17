@@ -3,10 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kosfinder/models/kos_model.dart';
+import 'package:kosfinder/providers/auth_provider.dart';
 import 'package:kosfinder/providers/kos_provider.dart';
+import 'package:kosfinder/repositories/auth_repository.dart';
 import 'package:kosfinder/repositories/kos_repository.dart';
 import 'package:kosfinder/screens/kos_list_screen.dart';
+import 'package:kosfinder/screens/login_screen.dart';
+import 'package:kosfinder/screens/register_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Mock repository untuk mengontrol data yang disajikan ke [KosProvider].
 class MockKosRepository extends KosRepository {
@@ -28,10 +33,19 @@ class MockKosRepository extends KosRepository {
   }
 }
 
+class MockListAuthRepository extends AuthRepository {
+  @override
+  User? get currentUser => null;
+
+  @override
+  bool get isAuthenticated => false;
+}
+
 void main() {
   group('KosListScreen Widget Tests', () {
     late MockKosRepository mockRepository;
     late KosProvider kosProvider;
+    late AuthProvider authProvider;
 
     final sampleKosList = [
       KosModel(
@@ -71,114 +85,177 @@ void main() {
     setUp(() {
       mockRepository = MockKosRepository();
       kosProvider = KosProvider(repository: mockRepository);
+      authProvider = AuthProvider(repository: MockListAuthRepository());
     });
 
     Widget createWidgetUnderTest() {
-      return ChangeNotifierProvider<KosProvider>.value(
-        value: kosProvider,
-        child: const MaterialApp(
-          home: KosListScreen(),
-        ),
+      return MultiProvider(
+        providers: [
+          ChangeNotifierProvider<KosProvider>.value(value: kosProvider),
+          ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+        ],
+        child: const MaterialApp(home: KosListScreen()),
       );
     }
 
-    testWidgets('1. Menampilkan daftar kartu kos publik tanpa kewajiban login (AC01-1)', (tester) async {
-      mockRepository.mockKosList = sampleKosList;
+    testWidgets(
+      '1. Menampilkan daftar kartu kos publik tanpa kewajiban login (AC01-1)',
+      (tester) async {
+        mockRepository.mockKosList = sampleKosList;
 
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
 
-      // Verifikasi judul AppBar
-      expect(find.text('KosFinder'), findsOneWidget);
+        // Verifikasi judul AppBar
+        expect(find.text('KosFinder'), findsOneWidget);
 
-      // Verifikasi informasi pada kartu kos pertama
-      expect(find.text('Kos Melati Singaraja'), findsOneWidget);
-      expect(find.text('Banyuasri'), findsOneWidget);
-      expect(find.text('Rp 850.000/bulan'), findsOneWidget);
-      expect(find.text('Sisa 3 kamar'), findsOneWidget);
+        // Verifikasi informasi pada kartu kos pertama
+        expect(find.text('Kos Melati Singaraja'), findsOneWidget);
+        expect(find.text('Banyuasri'), findsOneWidget);
+        expect(find.text('Rp 850.000/bulan'), findsOneWidget);
+        expect(find.text('Sisa 3 kamar'), findsOneWidget);
 
-      // Verifikasi informasi pada kartu kos kedua (Kamar penuh)
-      expect(find.text('Kos Kenanga Undiksha'), findsOneWidget);
-      expect(find.text('Kaliuntu'), findsOneWidget);
-      expect(find.text('Rp 1.200.000/bulan'), findsOneWidget);
-      expect(find.text('Kamar Penuh'), findsOneWidget);
+        // Verifikasi informasi pada kartu kos kedua (Kamar penuh)
+        expect(find.text('Kos Kenanga Undiksha'), findsOneWidget);
+        expect(find.text('Kaliuntu'), findsOneWidget);
+        expect(find.text('Rp 1.200.000/bulan'), findsOneWidget);
+        expect(find.text('Kamar Penuh'), findsOneWidget);
 
-      // Pastikan tidak ada dialog login yang muncul atau menghalangi akses tamu
-      expect(find.byType(AlertDialog), findsNothing);
-      expect(find.text('Login'), findsNothing);
-    });
+        // Pastikan tidak ada dialog login yang muncul atau menghalangi akses tamu
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(find.text('Login'), findsNothing);
+      },
+    );
 
-    testWidgets('2. Menampilkan status kosong informatif saat belum ada kos terdaftar (AC01-2)', (tester) async {
-      mockRepository.mockKosList = [];
+    testWidgets(
+      '2. Menampilkan status kosong informatif saat belum ada kos terdaftar (AC01-2)',
+      (tester) async {
+        mockRepository.mockKosList = [];
 
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
 
-      // Verifikasi pesan empty state
-      expect(find.text('Belum ada kos yang terdaftar saat ini'), findsOneWidget);
-      expect(find.byIcon(Icons.home_work_outlined), findsOneWidget);
-    });
+        // Verifikasi pesan empty state
+        expect(
+          find.text('Belum ada kos yang terdaftar saat ini'),
+          findsOneWidget,
+        );
+        expect(find.byIcon(Icons.home_work_outlined), findsOneWidget);
+      },
+    );
 
-    testWidgets('3. Menampilkan pesan error jaringan dan tombol Retry saat koneksi gagal (AC01-3)', (tester) async {
-      mockRepository.errorToThrow = const KosException(
-        'Gagal memuat data kos. Silakan periksa koneksi internet Anda.',
-      );
+    testWidgets(
+      '3. Menampilkan pesan error jaringan dan tombol Retry saat koneksi gagal (AC01-3)',
+      (tester) async {
+        mockRepository.errorToThrow = const KosException(
+          'Gagal memuat data kos. Silakan periksa koneksi internet Anda.',
+        );
 
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
 
-      // Verifikasi tampilan error
-      expect(find.text('Gagal memuat data kos. Silakan periksa koneksi internet Anda.'), findsOneWidget);
-      expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
-      expect(find.widgetWithText(ElevatedButton, 'Coba Lagi'), findsOneWidget);
+        // Verifikasi tampilan error
+        expect(
+          find.text(
+            'Gagal memuat data kos. Silakan periksa koneksi internet Anda.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
+        expect(
+          find.widgetWithText(ElevatedButton, 'Coba Lagi'),
+          findsOneWidget,
+        );
 
-      // Simulasi penekanan tombol Retry setelah koneksi pulih
-      mockRepository.errorToThrow = null;
-      mockRepository.mockKosList = sampleKosList;
+        // Simulasi penekanan tombol Retry setelah koneksi pulih
+        mockRepository.errorToThrow = null;
+        mockRepository.mockKosList = sampleKosList;
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Coba Lagi'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Coba Lagi'));
+        await tester.pumpAndSettle();
 
-      // Verifikasi data berhasil dimuat setelah Retry
-      expect(find.text('Kos Melati Singaraja'), findsOneWidget);
-      expect(find.text('Gagal memuat data kos. Silakan periksa koneksi internet Anda.'), findsNothing);
-    });
+        // Verifikasi data berhasil dimuat setelah Retry
+        expect(find.text('Kos Melati Singaraja'), findsOneWidget);
+        expect(
+          find.text(
+            'Gagal memuat data kos. Silakan periksa koneksi internet Anda.',
+          ),
+          findsNothing,
+        );
+      },
+    );
 
-    testWidgets('4. Menampilkan indikator loading saat data sedang dimuat (NFR05)', (tester) async {
-      final completer = Completer<List<KosModel>>();
-      mockRepository.listCompleter = completer;
+    testWidgets(
+      '4. Menampilkan indikator loading saat data sedang dimuat (NFR05)',
+      (tester) async {
+        final completer = Completer<List<KosModel>>();
+        mockRepository.listCompleter = completer;
 
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pump(); // Frame pertama saat loading aktif
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pump(); // Frame pertama saat loading aktif
 
-      // Verifikasi indikator loading aktif
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        // Verifikasi indikator loading aktif
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-      // Selesaikan future
-      completer.complete(sampleKosList);
-      await tester.pumpAndSettle();
+        // Selesaikan future
+        completer.complete(sampleKosList);
+        await tester.pumpAndSettle();
 
-      // Verifikasi indikator loading hilang dan kartu kos muncul
-      expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text('Kos Melati Singaraja'), findsOneWidget);
-    });
+        // Verifikasi indikator loading hilang dan kartu kos muncul
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(find.text('Kos Melati Singaraja'), findsOneWidget);
+      },
+    );
 
-    testWidgets('5. Navigasi menuju halaman About menampilkan identitas mahasiswa (AGENTS.md)', (tester) async {
-      mockRepository.mockKosList = sampleKosList;
+    testWidgets(
+      '5. Navigasi menuju halaman About menampilkan identitas mahasiswa (AGENTS.md)',
+      (tester) async {
+        mockRepository.mockKosList = sampleKosList;
 
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
 
-      // Cari ikon info di AppBar
-      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+        // Cari ikon info di AppBar
+        expect(find.byIcon(Icons.info_outline), findsOneWidget);
 
-      // Ketuk tombol info
-      await tester.tap(find.byIcon(Icons.info_outline));
-      await tester.pumpAndSettle();
+        // Ketuk tombol info
+        await tester.tap(find.byIcon(Icons.info_outline));
+        await tester.pumpAndSettle();
 
-      // Verifikasi navigasi ke AboutPage dan verifikasi identitas baku
-      expect(find.text('About'), findsOneWidget);
-      expect(find.text('2415051014 - Gede Supadma'), findsOneWidget);
-    });
+        // Verifikasi navigasi ke AboutPage dan verifikasi identitas baku
+        expect(find.text('About'), findsOneWidget);
+        expect(find.text('2415051014 - Gede Supadma'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '6. Mengetuk tombol Masuk pada AppBar mengarahkan ke LoginScreen dan dapat menuju RegisterScreen',
+      (tester) async {
+        mockRepository.mockKosList = sampleKosList;
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
+
+        // Cari tombol Masuk di AppBar
+        expect(find.byKey(const Key('btn_nav_login')), findsOneWidget);
+        expect(find.text('Masuk'), findsOneWidget);
+
+        // Ketuk tombol Masuk
+        await tester.tap(find.byKey(const Key('btn_nav_login')));
+        await tester.pumpAndSettle();
+
+        // Verifikasi berhasil navigasi ke LoginScreen
+        expect(find.byType(LoginScreen), findsOneWidget);
+        expect(find.text('Login Pemilik'), findsWidgets);
+
+        // Verifikasi tautan Daftar mengarah ke RegisterScreen
+        expect(find.byKey(const Key('btn_nav_register')), findsOneWidget);
+        await tester.tap(find.byKey(const Key('btn_nav_register')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(RegisterScreen), findsOneWidget);
+        expect(find.text('Daftar Akun Pemilik'), findsOneWidget);
+      },
+    );
   });
 }
