@@ -30,7 +30,10 @@ void main() {
       expect(model.area, 'Banyuasri');
       expect(model.contactNumber, '081234567890');
       expect(model.pricePerMonth, 850000);
-      expect(model.description, 'Kos nyaman, bersih, dan dekat kampus Undiksha.');
+      expect(
+        model.description,
+        'Kos nyaman, bersih, dan dekat kampus Undiksha.',
+      );
       expect(model.availableRooms, 3);
       expect(model.hasWifi, isTrue);
       expect(model.hasBathroomInside, isTrue);
@@ -66,35 +69,80 @@ void main() {
       }
 
       // id
-      expect(() => KosModel.fromJson(makeInvalid('id', null)), throwsFormatException);
-      expect(() => KosModel.fromJson(makeInvalid('id', '   ')), throwsFormatException);
+      expect(
+        () => KosModel.fromJson(makeInvalid('id', null)),
+        throwsFormatException,
+      );
+      expect(
+        () => KosModel.fromJson(makeInvalid('id', '   ')),
+        throwsFormatException,
+      );
 
       // owner_id
-      expect(() => KosModel.fromJson(makeInvalid('owner_id', null)), throwsFormatException);
-      expect(() => KosModel.fromJson(makeInvalid('owner_id', '')), throwsFormatException);
+      expect(
+        () => KosModel.fromJson(makeInvalid('owner_id', null)),
+        throwsFormatException,
+      );
+      expect(
+        () => KosModel.fromJson(makeInvalid('owner_id', '')),
+        throwsFormatException,
+      );
 
       // name
-      expect(() => KosModel.fromJson(makeInvalid('name', null)), throwsFormatException);
-      expect(() => KosModel.fromJson(makeInvalid('name', '   ')), throwsFormatException);
+      expect(
+        () => KosModel.fromJson(makeInvalid('name', null)),
+        throwsFormatException,
+      );
+      expect(
+        () => KosModel.fromJson(makeInvalid('name', '   ')),
+        throwsFormatException,
+      );
 
       // address
-      expect(() => KosModel.fromJson(makeInvalid('address', null)), throwsFormatException);
-      expect(() => KosModel.fromJson(makeInvalid('address', '')), throwsFormatException);
+      expect(
+        () => KosModel.fromJson(makeInvalid('address', null)),
+        throwsFormatException,
+      );
+      expect(
+        () => KosModel.fromJson(makeInvalid('address', '')),
+        throwsFormatException,
+      );
 
       // area
-      expect(() => KosModel.fromJson(makeInvalid('area', null)), throwsFormatException);
-      expect(() => KosModel.fromJson(makeInvalid('area', ' ')), throwsFormatException);
+      expect(
+        () => KosModel.fromJson(makeInvalid('area', null)),
+        throwsFormatException,
+      );
+      expect(
+        () => KosModel.fromJson(makeInvalid('area', ' ')),
+        throwsFormatException,
+      );
 
       // contact_number
-      expect(() => KosModel.fromJson(makeInvalid('contact_number', null)), throwsFormatException);
-      expect(() => KosModel.fromJson(makeInvalid('contact_number', '12345')), throwsFormatException); // < 8 char
+      expect(
+        () => KosModel.fromJson(makeInvalid('contact_number', null)),
+        throwsFormatException,
+      );
+      expect(
+        () => KosModel.fromJson(makeInvalid('contact_number', '12345')),
+        throwsFormatException,
+      ); // < 8 char
 
       // price_per_month
-      expect(() => KosModel.fromJson(makeInvalid('price_per_month', null)), throwsFormatException);
+      expect(
+        () => KosModel.fromJson(makeInvalid('price_per_month', null)),
+        throwsFormatException,
+      );
 
       // description
-      expect(() => KosModel.fromJson(makeInvalid('description', null)), throwsFormatException);
-      expect(() => KosModel.fromJson(makeInvalid('description', '')), throwsFormatException);
+      expect(
+        () => KosModel.fromJson(makeInvalid('description', null)),
+        throwsFormatException,
+      );
+      expect(
+        () => KosModel.fromJson(makeInvalid('description', '')),
+        throwsFormatException,
+      );
     });
 
     test('3. Nilai harga desimal/pecahan dan negatif yang tidak valid melempar FormatException', () {
@@ -109,19 +157,23 @@ void main() {
       ];
 
       for (final invalidPrice in invalidPrices) {
-        final map = Map<String, dynamic>.from(validJson)..['price_per_month'] = invalidPrice;
+        final map = Map<String, dynamic>.from(validJson)
+          ..['price_per_month'] = invalidPrice;
         expect(
           () => KosModel.fromJson(map),
           throwsFormatException,
-          reason: 'Harga $invalidPrice seharusnya ditolak sebagai FormatException',
+          reason:
+              'Harga $invalidPrice seharusnya ditolak sebagai FormatException',
         );
       }
 
       // Nilai integer valid (termasuk integer dalam string) harus berhasil
-      final validPriceMap1 = Map<String, dynamic>.from(validJson)..['price_per_month'] = 1500000;
+      final validPriceMap1 = Map<String, dynamic>.from(validJson)
+        ..['price_per_month'] = 1500000;
       expect(KosModel.fromJson(validPriceMap1).pricePerMonth, 1500000);
 
-      final validPriceMap2 = Map<String, dynamic>.from(validJson)..['price_per_month'] = '1500000';
+      final validPriceMap2 = Map<String, dynamic>.from(validJson)
+        ..['price_per_month'] = '1500000';
       expect(KosModel.fromJson(validPriceMap2).pricePerMonth, 1500000);
     });
 
@@ -135,64 +187,77 @@ void main() {
       ];
 
       for (final invalidRoom in invalidRooms) {
-        final map = Map<String, dynamic>.from(validJson)..['available_rooms'] = invalidRoom;
+        final map = Map<String, dynamic>.from(validJson)
+          ..['available_rooms'] = invalidRoom;
         expect(
           () => KosModel.fromJson(map),
           throwsFormatException,
-          reason: 'Jumlah kamar $invalidRoom seharusnya ditolak sebagai FormatException',
+          reason:
+              'Jumlah kamar $invalidRoom seharusnya ditolak sebagai FormatException',
         );
       }
 
       // available_rooms null harus default ke 0
-      final nullRoomMap = Map<String, dynamic>.from(validJson)..remove('available_rooms');
+      final nullRoomMap = Map<String, dynamic>.from(validJson)
+        ..remove('available_rooms');
       expect(KosModel.fromJson(nullRoomMap).availableRooms, 0);
 
       // Bilangan bulat valid
-      final validRoomMap = Map<String, dynamic>.from(validJson)..['available_rooms'] = 5;
+      final validRoomMap = Map<String, dynamic>.from(validJson)
+        ..['available_rooms'] = 5;
       expect(KosModel.fromJson(validRoomMap).availableRooms, 5);
 
-      final validRoomStringMap = Map<String, dynamic>.from(validJson)..['available_rooms'] = '4';
+      final validRoomStringMap = Map<String, dynamic>.from(validJson)
+        ..['available_rooms'] = '4';
       expect(KosModel.fromJson(validRoomStringMap).availableRooms, 4);
     });
 
-    test('5. Penanganan nilai boolean konsisten dan menolak nilai tidak valid', () {
-      // Nilai boolean asli
-      final boolMap = Map<String, dynamic>.from(validJson)
-        ..['has_wifi'] = true
-        ..['has_bathroom_inside'] = false
-        ..['has_parking'] = true;
-      final model1 = KosModel.fromJson(boolMap);
-      expect(model1.hasWifi, isTrue);
-      expect(model1.hasBathroomInside, isFalse);
-      expect(model1.hasParking, isTrue);
+    test(
+      '5. Penanganan nilai boolean konsisten dan menolak nilai tidak valid',
+      () {
+        // Nilai boolean asli
+        final boolMap = Map<String, dynamic>.from(validJson)
+          ..['has_wifi'] = true
+          ..['has_bathroom_inside'] = false
+          ..['has_parking'] = true;
+        final model1 = KosModel.fromJson(boolMap);
+        expect(model1.hasWifi, isTrue);
+        expect(model1.hasBathroomInside, isFalse);
+        expect(model1.hasParking, isTrue);
 
-      // Nilai boolean dalam bentuk string valid ('true', 'false')
-      final stringBoolMap = Map<String, dynamic>.from(validJson)
-        ..['has_wifi'] = 'true'
-        ..['has_bathroom_inside'] = 'false'
-        ..['has_parking'] = 'TRUE';
-      final model2 = KosModel.fromJson(stringBoolMap);
-      expect(model2.hasWifi, isTrue);
-      expect(model2.hasBathroomInside, isFalse);
-      expect(model2.hasParking, isTrue);
+        // Nilai boolean dalam bentuk string valid ('true', 'false')
+        final stringBoolMap = Map<String, dynamic>.from(validJson)
+          ..['has_wifi'] = 'true'
+          ..['has_bathroom_inside'] = 'false'
+          ..['has_parking'] = 'TRUE';
+        final model2 = KosModel.fromJson(stringBoolMap);
+        expect(model2.hasWifi, isTrue);
+        expect(model2.hasBathroomInside, isFalse);
+        expect(model2.hasParking, isTrue);
 
-      // Nilai null harus default ke false (selaras dengan database DEFAULT FALSE)
-      final nullBoolMap = Map<String, dynamic>.from(validJson)
-        ..remove('has_wifi')
-        ..remove('has_bathroom_inside')
-        ..remove('has_parking');
-      final model3 = KosModel.fromJson(nullBoolMap);
-      expect(model3.hasWifi, isFalse);
-      expect(model3.hasBathroomInside, isFalse);
-      expect(model3.hasParking, isFalse);
+        // Nilai null harus default ke false (selaras dengan database DEFAULT FALSE)
+        final nullBoolMap = Map<String, dynamic>.from(validJson)
+          ..remove('has_wifi')
+          ..remove('has_bathroom_inside')
+          ..remove('has_parking');
+        final model3 = KosModel.fromJson(nullBoolMap);
+        expect(model3.hasWifi, isFalse);
+        expect(model3.hasBathroomInside, isFalse);
+        expect(model3.hasParking, isFalse);
 
-      // Nilai non-boolean tidak valid harus melempar FormatException
-      final invalidBoolMap = Map<String, dynamic>.from(validJson)..['has_wifi'] = 'bukan_bool';
-      expect(() => KosModel.fromJson(invalidBoolMap), throwsFormatException);
+        // Nilai non-boolean tidak valid harus melempar FormatException
+        final invalidBoolMap = Map<String, dynamic>.from(validJson)
+          ..['has_wifi'] = 'bukan_bool';
+        expect(() => KosModel.fromJson(invalidBoolMap), throwsFormatException);
 
-      final invalidNumberBoolMap = Map<String, dynamic>.from(validJson)..['has_parking'] = 99;
-      expect(() => KosModel.fromJson(invalidNumberBoolMap), throwsFormatException);
-    });
+        final invalidNumberBoolMap = Map<String, dynamic>.from(validJson)
+          ..['has_parking'] = 99;
+        expect(
+          () => KosModel.fromJson(invalidNumberBoolMap),
+          throwsFormatException,
+        );
+      },
+    );
 
     test('6. Validasi pada Constructor KosModel melempar ArgumentError jika data tidak valid', () {
       expect(

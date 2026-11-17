@@ -13,23 +13,34 @@ Future<void> main() async {
   // 1. Pastikan binding Flutter siap sebelum operasi asynchronous
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Muat konfigurasi dari file .env
-  await dotenv.load(fileName: '.env');
+  // 2. Ambil konfigurasi Supabase dari environment variable (--dart-define) atau file .env
+  String supabaseUrl = const String.fromEnvironment('SUPABASE_URL');
+  String supabaseKey = const String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
 
-  // 3. Ambil dan validasi konfigurasi Supabase
-  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
-  final supabaseKey = dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '';
+  if (supabaseUrl.isEmpty || supabaseKey.isEmpty) {
+    try {
+      await dotenv.load(fileName: '.env');
+      supabaseUrl = supabaseUrl.isNotEmpty
+          ? supabaseUrl
+          : (dotenv.env['SUPABASE_URL'] ?? '');
+      supabaseKey = supabaseKey.isNotEmpty
+          ? supabaseKey
+          : (dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '');
+    } catch (_) {
+      // File .env mungkin tidak tersedia di lingkungan build tertentu
+    }
+  }
 
   if (supabaseUrl.isEmpty) {
     throw StateError(
-      'SUPABASE_URL tidak ditemukan atau kosong di file .env. '
-      'Pastikan file .env sudah dikonfigurasi dengan benar.',
+      'SUPABASE_URL tidak ditemukan atau kosong. '
+      'Pastikan file .env sudah dikonfigurasi atau gunakan parameter build --dart-define=SUPABASE_URL=...',
     );
   }
   if (supabaseKey.isEmpty) {
     throw StateError(
-      'SUPABASE_PUBLISHABLE_KEY tidak ditemukan atau kosong di file .env. '
-      'Pastikan file .env sudah dikonfigurasi dengan benar.',
+      'SUPABASE_PUBLISHABLE_KEY tidak ditemukan atau kosong. '
+      'Pastikan file .env sudah dikonfigurasi atau gunakan parameter build --dart-define=SUPABASE_PUBLISHABLE_KEY=...',
     );
   }
 
@@ -191,7 +202,7 @@ class AboutPage extends StatelessWidget {
                 border: Border.all(color: AppColors.border),
               ),
               child: const Text(
-                'Versi 1.0.0',
+                'Versi 0.1.0',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,

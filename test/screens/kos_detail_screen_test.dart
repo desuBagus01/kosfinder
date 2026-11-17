@@ -242,18 +242,21 @@ void main() {
       },
     );
 
-    testWidgets('8. Tombol Telepon dan WhatsApp tampil di halaman detail (FR06)', (tester) async {
-      mockRepository.mockKosDetail = sampleKos;
+    testWidgets(
+      '8. Tombol Telepon dan WhatsApp tampil di halaman detail (FR06)',
+      (tester) async {
+        mockRepository.mockKosDetail = sampleKos;
 
-      await tester.pumpWidget(buildDetailScreen(sampleKos.id));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildDetailScreen(sampleKos.id));
+        await tester.pumpAndSettle();
 
-      // Verifikasi kedua tombol kontak tampil
-      expect(find.byKey(const Key('btn_phone')), findsOneWidget);
-      expect(find.byKey(const Key('btn_whatsapp')), findsOneWidget);
-      expect(find.text('Telepon'), findsOneWidget);
-      expect(find.text('WhatsApp'), findsOneWidget);
-    });
+        // Verifikasi kedua tombol kontak tampil
+        expect(find.byKey(const Key('btn_phone')), findsOneWidget);
+        expect(find.byKey(const Key('btn_whatsapp')), findsOneWidget);
+        expect(find.text('Telepon'), findsOneWidget);
+        expect(find.text('WhatsApp'), findsOneWidget);
+      },
+    );
   });
 
   // ─── Unit test normalisasi nomor WhatsApp ────────────────────────────────

@@ -135,7 +135,10 @@ void main() {
       await provider.fetchKosList();
 
       expect(provider.isLoading, isFalse);
-      expect(provider.errorMessage, 'Gagal memuat data kos. Silakan periksa koneksi internet Anda.');
+      expect(
+        provider.errorMessage,
+        'Gagal memuat data kos. Silakan periksa koneksi internet Anda.',
+      );
       expect(provider.kosList, isEmpty);
     });
 
@@ -158,25 +161,34 @@ void main() {
       expect(provider.isLoading, isFalse);
     });
 
-    test('7. Pengambilan detail kos berhasil memperbarui selectedKos', () async {
-      mockRepository.mockKosDetail = sampleKos;
+    test(
+      '7. Pengambilan detail kos berhasil memperbarui selectedKos',
+      () async {
+        mockRepository.mockKosDetail = sampleKos;
 
-      await provider.fetchKosDetail('c1111111-1111-1111-1111-111111111111');
+        await provider.fetchKosDetail('c1111111-1111-1111-1111-111111111111');
 
-      expect(provider.isLoading, isFalse);
-      expect(provider.errorMessage, isNull);
-      expect(provider.selectedKos, equals(sampleKos));
-    });
+        expect(provider.isLoading, isFalse);
+        expect(provider.errorMessage, isNull);
+        expect(provider.selectedKos, equals(sampleKos));
+      },
+    );
 
-    test('8. Pengambilan detail kos yang tidak ditemukan mengeset pesan not found', () async {
-      mockRepository.mockKosDetail = null;
+    test(
+      '8. Pengambilan detail kos yang tidak ditemukan mengeset pesan not found',
+      () async {
+        mockRepository.mockKosDetail = null;
 
-      await provider.fetchKosDetail('unknown-id');
+        await provider.fetchKosDetail('unknown-id');
 
-      expect(provider.isLoading, isFalse);
-      expect(provider.selectedKos, isNull);
-      expect(provider.errorMessage, 'Kos tidak ditemukan atau sudah tidak tersedia.');
-    });
+        expect(provider.isLoading, isFalse);
+        expect(provider.selectedKos, isNull);
+        expect(
+          provider.errorMessage,
+          'Kos tidak ditemukan atau sudah tidak tersedia.',
+        );
+      },
+    );
 
     test('9. Pengambilan detail kos yang gagal karena error jaringan memperbarui errorMessage dan mengosongkan selectedKos', () async {
       mockRepository.errorToThrow = const KosException(
@@ -187,7 +199,10 @@ void main() {
 
       expect(provider.isLoading, isFalse);
       expect(provider.selectedKos, isNull);
-      expect(provider.errorMessage, 'Gagal memuat detail kos. Periksa koneksi Anda.');
+      expect(
+        provider.errorMessage,
+        'Gagal memuat detail kos. Periksa koneksi Anda.',
+      );
     });
 
     test('10. Operasi asynchronous daftar dan detail yang berjalan bersamaan tidak menyebabkan benturan status loading', () async {
@@ -198,7 +213,9 @@ void main() {
 
       // Jalankan kedua operasi bersamaan
       final listFuture = provider.fetchKosList();
-      final detailFuture = provider.fetchKosDetail('c1111111-1111-1111-1111-111111111111');
+      final detailFuture = provider.fetchKosDetail(
+        'c1111111-1111-1111-1111-111111111111',
+      );
 
       // Verifikasi keduanya aktif memuat
       expect(provider.isLoading, isTrue);
@@ -212,7 +229,11 @@ void main() {
       // Verifikasi: detail selesai, tetapi daftar MASIH memuat, sehingga isLoading umum HARUS tetap true
       expect(provider.isLoadingDetail, isFalse);
       expect(provider.isLoadingList, isTrue);
-      expect(provider.isLoading, isTrue, reason: 'isLoading tidak boleh false jika masih ada operasi daftar yang berjalan');
+      expect(
+        provider.isLoading,
+        isTrue,
+        reason: 'isLoading tidak boleh false jika masih ada operasi daftar yang berjalan',
+      );
       expect(provider.selectedKos, equals(sampleKos));
 
       // Selesaikan operasi daftar

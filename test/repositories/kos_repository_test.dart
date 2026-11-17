@@ -56,30 +56,38 @@ void main() {
     });
 
     group('getKosList()', () {
-      test('1. Mengambil seluruh data kos berhasil dan dipetakan ke KosModel', () async {
-        mockService.mockKosListResponse = [sampleKosMap];
+      test(
+        '1. Mengambil seluruh data kos berhasil dan dipetakan ke KosModel',
+        () async {
+          mockService.mockKosListResponse = [sampleKosMap];
 
-        final result = await repository.getKosList();
+          final result = await repository.getKosList();
 
-        expect(result, hasLength(1));
-        final kos = result.first;
-        expect(kos.id, 'a1111111-1111-1111-1111-111111111111');
-        expect(kos.name, 'Kos Bunga Mawar');
-        expect(kos.pricePerMonth, 750000);
-        expect(kos.hasWifi, isTrue);
-        expect(kos.availableRooms, 2);
-      });
+          expect(result, hasLength(1));
+          final kos = result.first;
+          expect(kos.id, 'a1111111-1111-1111-1111-111111111111');
+          expect(kos.name, 'Kos Bunga Mawar');
+          expect(kos.pricePerMonth, 750000);
+          expect(kos.hasWifi, isTrue);
+          expect(kos.availableRooms, 2);
+        },
+      );
 
-      test('2. Mengembalikan list kosong jika belum ada data kos yang terdaftar', () async {
-        mockService.mockKosListResponse = [];
+      test(
+        '2. Mengembalikan list kosong jika belum ada data kos yang terdaftar',
+        () async {
+          mockService.mockKosListResponse = [];
 
-        final result = await repository.getKosList();
+          final result = await repository.getKosList();
 
-        expect(result, isEmpty);
-      });
+          expect(result, isEmpty);
+        },
+      );
 
       test('3. Menangani kegagalan jaringan (SocketException) dengan pesan terstandar', () async {
-        mockService.errorToThrow = const SocketException('No Internet Connection');
+        mockService.errorToThrow = const SocketException(
+          'No Internet Connection',
+        );
 
         expect(
           () => repository.getKosList(),
@@ -111,9 +119,7 @@ void main() {
       test('5. Menangani data cacat/rusak dari server dengan pesan kesalahan format', () async {
         // Data tanpa field wajib 'id' akan menyebabkan KosModel melempar FormatException
         mockService.mockKosListResponse = [
-          <String, dynamic>{
-            'name': 'Kos Rusak',
-          },
+          <String, dynamic>{'name': 'Kos Rusak'},
         ];
 
         expect(
@@ -130,38 +136,48 @@ void main() {
     });
 
     group('getKosDetailById()', () {
-      test('1. Mengambil detail kos berdasarkan ID berhasil jika ditemukan', () async {
-        mockService.mockKosDetailResponse = sampleKosMap;
+      test(
+        '1. Mengambil detail kos berdasarkan ID berhasil jika ditemukan',
+        () async {
+          mockService.mockKosDetailResponse = sampleKosMap;
 
-        final result = await repository.getKosDetailById('a1111111-1111-1111-1111-111111111111');
+          final result = await repository.getKosDetailById(
+            'a1111111-1111-1111-1111-111111111111',
+          );
 
-        expect(result, isNotNull);
-        expect(result!.id, 'a1111111-1111-1111-1111-111111111111');
-        expect(result.name, 'Kos Bunga Mawar');
-        expect(result.area, 'Banyuasri');
-        expect(result.contactNumber, '081234567899');
-      });
+          expect(result, isNotNull);
+          expect(result!.id, 'a1111111-1111-1111-1111-111111111111');
+          expect(result.name, 'Kos Bunga Mawar');
+          expect(result.area, 'Banyuasri');
+          expect(result.contactNumber, '081234567899');
+        },
+      );
 
-      test('2. Mengembalikan null jika kos tidak ditemukan atau sudah dihapus', () async {
-        mockService.mockKosDetailResponse = null;
+      test(
+        '2. Mengembalikan null jika kos tidak ditemukan atau sudah dihapus',
+        () async {
+          mockService.mockKosDetailResponse = null;
 
-        final result = await repository.getKosDetailById('non-existent-uuid');
+          final result = await repository.getKosDetailById('non-existent-uuid');
 
-        expect(result, isNull);
-      });
+          expect(result, isNull);
+        },
+      );
 
-      test('3. Melempar ArgumentError jika ID kos yang diberikan kosong', () async {
-        expect(
-          () => repository.getKosDetailById('   '),
-          throwsArgumentError,
-        );
-      });
+      test(
+        '3. Melempar ArgumentError jika ID kos yang diberikan kosong',
+        () async {
+          expect(() => repository.getKosDetailById('   '), throwsArgumentError);
+        },
+      );
 
       test('4. Menangani kegagalan jaringan saat memuat detail kos dengan pesan terstandar', () async {
         mockService.errorToThrow = const SocketException('Connection lost');
 
         expect(
-          () => repository.getKosDetailById('a1111111-1111-1111-1111-111111111111'),
+          () => repository.getKosDetailById(
+            'a1111111-1111-1111-1111-111111111111',
+          ),
           throwsA(
             isA<KosException>().having(
               (e) => e.message,

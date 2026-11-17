@@ -51,7 +51,10 @@ class _UpdateRoomsDialogState extends State<UpdateRoomsDialog> {
     });
 
     final provider = context.read<KosProvider>();
-    final success = await provider.updateAvailableRooms(widget.kos.id, newRooms);
+    final success = await provider.updateAvailableRooms(
+      widget.kos.id,
+      newRooms,
+    );
 
     if (!mounted) return;
 
@@ -167,10 +170,7 @@ class _UpdateRoomsDialogState extends State<UpdateRoomsDialog> {
               const SizedBox(height: 10),
               Text(
                 _errorMessage!,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.error,
-                ),
+                style: const TextStyle(fontSize: 13, color: AppColors.error),
               ),
             ],
           ],

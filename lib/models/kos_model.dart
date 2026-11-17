@@ -36,13 +36,21 @@ class KosModel {
       throw ArgumentError.value(id, 'id', 'id tidak boleh kosong.');
     }
     if (ownerId.trim().isEmpty) {
-      throw ArgumentError.value(ownerId, 'ownerId', 'ownerId tidak boleh kosong.');
+      throw ArgumentError.value(
+        ownerId,
+        'ownerId',
+        'ownerId tidak boleh kosong.',
+      );
     }
     if (name.trim().isEmpty) {
       throw ArgumentError.value(name, 'name', 'name tidak boleh kosong.');
     }
     if (address.trim().isEmpty) {
-      throw ArgumentError.value(address, 'address', 'address tidak boleh kosong.');
+      throw ArgumentError.value(
+        address,
+        'address',
+        'address tidak boleh kosong.',
+      );
     }
     if (area.trim().isEmpty) {
       throw ArgumentError.value(area, 'area', 'area tidak boleh kosong.');
@@ -62,7 +70,11 @@ class KosModel {
       );
     }
     if (description.trim().isEmpty) {
-      throw ArgumentError.value(description, 'description', 'description tidak boleh kosong.');
+      throw ArgumentError.value(
+        description,
+        'description',
+        'description tidak boleh kosong.',
+      );
     }
     if (availableRooms < 0) {
       throw ArgumentError.value(
@@ -92,7 +104,10 @@ class KosModel {
         fieldName: 'price_per_month',
         isRequired: true,
       ),
-      description: _parseRequiredString(json['description'], fieldName: 'description'),
+      description: _parseRequiredString(
+        json['description'],
+        fieldName: 'description',
+      ),
       availableRooms: _parseStrictInteger(
         json['available_rooms'],
         fieldName: 'available_rooms',
@@ -104,7 +119,10 @@ class KosModel {
         json['has_bathroom_inside'],
         fieldName: 'has_bathroom_inside',
       ),
-      hasParking: _parseStrictBool(json['has_parking'], fieldName: 'has_parking'),
+      hasParking: _parseStrictBool(
+        json['has_parking'],
+        fieldName: 'has_parking',
+      ),
       createdAt: _parseDateTime(json['created_at'], fieldName: 'created_at'),
       updatedAt: _parseDateTime(json['updated_at'], fieldName: 'updated_at'),
     );
@@ -117,14 +135,20 @@ class KosModel {
     int minLength = 1,
   }) {
     if (value == null) {
-      throw FormatException('Field $fieldName wajib diisi dan tidak boleh null.');
+      throw FormatException(
+        'Field $fieldName wajib diisi dan tidak boleh null.',
+      );
     }
     if (value is! String) {
-      throw FormatException('Field $fieldName harus berupa string teks yang valid.');
+      throw FormatException(
+        'Field $fieldName harus berupa string teks yang valid.',
+      );
     }
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      throw FormatException('Field $fieldName tidak boleh berupa string kosong.');
+      throw FormatException(
+        'Field $fieldName tidak boleh berupa string kosong.',
+      );
     }
     if (trimmed.length < minLength) {
       throw FormatException(
@@ -144,14 +168,18 @@ class KosModel {
   }) {
     if (value == null) {
       if (isRequired) {
-        throw FormatException('Field $fieldName wajib diisi dan tidak boleh null.');
+        throw FormatException(
+          'Field $fieldName wajib diisi dan tidak boleh null.',
+        );
       }
       return defaultValue;
     }
 
     if (value is int) {
       if (value < 0) {
-        throw FormatException('Field $fieldName tidak boleh bernilai negatif ($value).');
+        throw FormatException(
+          'Field $fieldName tidak boleh bernilai negatif ($value).',
+        );
       }
       return value;
     }
@@ -164,7 +192,9 @@ class KosModel {
       }
       final intValue = value.toInt();
       if (intValue < 0) {
-        throw FormatException('Field $fieldName tidak boleh bernilai negatif ($intValue).');
+        throw FormatException(
+          'Field $fieldName tidak boleh bernilai negatif ($intValue).',
+        );
       }
       return intValue;
     }
@@ -173,7 +203,9 @@ class KosModel {
       final trimmed = value.trim();
       if (trimmed.isEmpty) {
         if (isRequired) {
-          throw FormatException('Field $fieldName wajib diisi dan tidak boleh kosong.');
+          throw FormatException(
+            'Field $fieldName wajib diisi dan tidak boleh kosong.',
+          );
         }
         return defaultValue;
       }
@@ -188,7 +220,9 @@ class KosModel {
           }
           final intVal = doubleVal.toInt();
           if (intVal < 0) {
-            throw FormatException('Field $fieldName tidak boleh bernilai negatif ($intVal).');
+            throw FormatException(
+              'Field $fieldName tidak boleh bernilai negatif ($intVal).',
+            );
           }
           return intVal;
         }
@@ -196,10 +230,14 @@ class KosModel {
 
       final parsed = int.tryParse(trimmed);
       if (parsed == null) {
-        throw FormatException('Field $fieldName harus berupa bilangan bulat yang valid.');
+        throw FormatException(
+          'Field $fieldName harus berupa bilangan bulat yang valid.',
+        );
       }
       if (parsed < 0) {
-        throw FormatException('Field $fieldName tidak boleh bernilai negatif ($parsed).');
+        throw FormatException(
+          'Field $fieldName tidak boleh bernilai negatif ($parsed).',
+        );
       }
       return parsed;
     }
@@ -230,11 +268,15 @@ class KosModel {
     if (value is String) {
       final parsed = DateTime.tryParse(value);
       if (parsed == null) {
-        throw FormatException('Format tanggal pada field $fieldName tidak valid: $value.');
+        throw FormatException(
+          'Format tanggal pada field $fieldName tidak valid: $value.',
+        );
       }
       return parsed;
     }
-    throw FormatException('Field $fieldName harus berupa string tanggal ISO 8601.');
+    throw FormatException(
+      'Field $fieldName harus berupa string tanggal ISO 8601.',
+    );
   }
 
   /// Mengonversi instance [KosModel] menjadi Map JSON untuk penyimpanan ke database Supabase.

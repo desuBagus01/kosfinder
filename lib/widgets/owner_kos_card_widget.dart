@@ -196,7 +196,8 @@ class OwnerKosCardWidget extends StatelessWidget {
                   children: [
                     OutlinedButton.icon(
                       key: Key('btn_update_rooms_${kos.id}'),
-                      onPressed: onUpdateRooms ??
+                      onPressed:
+                          onUpdateRooms ??
                           () => _showUpdateRoomsDialog(context),
                       icon: const Icon(Icons.hotel_outlined, size: 16),
                       label: const Text('Update Kamar'),

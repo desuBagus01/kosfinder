@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kosfinder/models/kos_model.dart';
 import 'package:kosfinder/providers/kos_provider.dart';
@@ -58,6 +56,20 @@ class FakeSupabaseKosServiceForRooms extends SupabaseKosService {
       'created_at': '2026-11-17T08:00:00.000Z',
       'updated_at': DateTime.now().toIso8601String(),
     };
+  }
+
+  @override
+  Future<Map<String, dynamic>> createKos(Map<String, dynamic> kosData) async {
+    final payload = Map<String, dynamic>.from(kosData);
+    payload['owner_id'] = mockUser?.id ?? 'owner-uuid-1111';
+    payload['created_at'] = DateTime.now().toIso8601String();
+    payload['updated_at'] = DateTime.now().toIso8601String();
+    return payload;
+  }
+
+  @override
+  Future<Map<String, dynamic>?> fetchKosById(String id) async {
+    return mockResponseData;
   }
 }
 
@@ -135,38 +147,47 @@ void main() {
       );
     });
 
-    test('4. Pengguna yang belum login tidak dapat memperbarui kamar', () async {
-      fakeService.mockUser = null; // Simulasi belum login
+    test(
+      '4. Pengguna yang belum login tidak dapat memperbarui kamar',
+      () async {
+        fakeService.mockUser = null; // Simulasi belum login
 
-      // Repository melempar KosException
-      expect(
-        () => repository.updateAvailableRooms('kos-uuid-001', 3),
-        throwsA(isA<KosException>()),
-      );
+        // Repository melempar KosException
+        expect(
+          () => repository.updateAvailableRooms('kos-uuid-001', 3),
+          throwsA(isA<KosException>()),
+        );
 
-      // Provider mengembalikan false dan menyimpan pesan error
-      final success = await provider.updateAvailableRooms('kos-uuid-001', 3);
-      expect(success, isFalse);
-      expect(provider.errorMessage, isNotNull);
-      expect(provider.errorMessage, contains('belum login'));
-    });
+        // Provider mengembalikan false dan menyimpan pesan error
+        final success = await provider.updateAvailableRooms('kos-uuid-001', 3);
+        expect(success, isFalse);
+        expect(provider.errorMessage, isNotNull);
+        expect(provider.errorMessage, contains('belum login'));
+      },
+    );
 
-    test('5. Pemilik tidak dapat memperbarui kos milik pengguna lain (RLS)', () async {
-      // Simulasi backend merespons error otorisasi RLS (PostgrestException / 403)
-      fakeService.errorToThrow = const PostgrestException(
-        message: 'Tidak ada baris yang diperbarui karena pembatasan kepemilikan RLS.',
-        code: '42501',
-      );
+    test(
+      '5. Pemilik tidak dapat memperbarui kos milik pengguna lain (RLS)',
+      () async {
+        // Simulasi backend merespons error otorisasi RLS (PostgrestException / 403)
+        fakeService.errorToThrow = const PostgrestException(
+          message: 'Tidak ada baris yang diperbarui karena pembatasan kepemilikan RLS.',
+          code: '42501',
+        );
 
-      expect(
-        () => repository.updateAvailableRooms('kos-other-owner', 3),
-        throwsA(isA<KosException>()),
-      );
+        expect(
+          () => repository.updateAvailableRooms('kos-other-owner', 3),
+          throwsA(isA<KosException>()),
+        );
 
-      final success = await provider.updateAvailableRooms('kos-other-owner', 3);
-      expect(success, isFalse);
-      expect(provider.errorMessage, isNotNull);
-    });
+        final success = await provider.updateAvailableRooms(
+          'kos-other-owner',
+          3,
+        );
+        expect(success, isFalse);
+        expect(provider.errorMessage, isNotNull);
+      },
+    );
 
     test('6. State Provider diperbarui setelah operasi berhasil (ownerKosList, kosList, selectedKos)', () async {
       // Siapkan data awal di dalam provider

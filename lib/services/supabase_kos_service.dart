@@ -268,7 +268,9 @@ class SupabaseKosService {
           e is ArgumentError) {
         rethrow;
       }
-      throw Exception('Terjadi kesalahan saat memperbarui ketersediaan kamar: $e');
+      throw Exception(
+        'Terjadi kesalahan saat memperbarui ketersediaan kamar: $e',
+      );
     }
   }
 
