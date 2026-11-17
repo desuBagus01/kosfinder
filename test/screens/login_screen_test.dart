@@ -9,6 +9,7 @@ import 'package:kosfinder/repositories/auth_repository.dart';
 import 'package:kosfinder/repositories/kos_repository.dart';
 import 'package:kosfinder/screens/kos_list_screen.dart';
 import 'package:kosfinder/screens/login_screen.dart';
+import 'package:kosfinder/screens/owner_kos_screen.dart';
 import 'package:kosfinder/screens/register_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -62,6 +63,9 @@ class MockLoginAuthRepository extends AuthRepository {
 class MockLoginKosRepository extends KosRepository {
   @override
   Future<List<KosModel>> getKosList() async => [];
+
+  @override
+  Future<List<KosModel>> getOwnerKosList([String? ownerId]) async => [];
 }
 
 void main() {
@@ -308,7 +312,7 @@ void main() {
     );
 
     testWidgets(
-      '9. Login berhasil: menampilkan konfirmasi autentikasi dan mengarahkan kembali ke daftar kos',
+      '9. Login berhasil: menampilkan konfirmasi autentikasi dan mengarahkan ke halaman kelola kos pemilik',
       (tester) async {
         await tester.pumpWidget(createScreenUnderTest());
         await tester.pumpAndSettle();
@@ -336,9 +340,8 @@ void main() {
           findsOneWidget,
         );
 
-        // Verifikasi navigasi kembali ke KosListScreen
-        expect(find.byType(KosListScreen), findsOneWidget);
-        expect(find.text('KosFinder'), findsOneWidget);
+        // Verifikasi navigasi ke OwnerKosScreen setelah login berhasil
+        expect(find.byType(OwnerKosScreen), findsOneWidget);
       },
     );
 

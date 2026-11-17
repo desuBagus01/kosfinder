@@ -9,6 +9,7 @@ import '../widgets/kos_card_widget.dart';
 import '../widgets/kos_filter_bottom_sheet.dart';
 import 'kos_detail_screen.dart';
 import 'login_screen.dart';
+import 'owner_kos_screen.dart';
 
 /// Halaman utama aplikasi KosFinder yang menampilkan daftar seluruh kos secara publik.
 /// Mengadopsi prinsip desain Modern Minimalist dengan Blue Theme.
@@ -107,7 +108,7 @@ class _KosListScreenState extends State<KosListScreen> {
   /// Membangun tombol navigasi autentikasi pada AppBar.
   /// Menyesuaikan tampilan secara reaktif berdasarkan status login pengguna di [AuthProvider]:
   /// - Belum login: menampilkan tombol "Masuk" (key: btn_nav_login) menuju [LoginScreen].
-  /// - Sudah login: menampilkan tombol "Keluar" (key: btn_nav_logout) untuk melakukan logout.
+  /// - Sudah login: menampilkan tombol "Kelola Kos" (key: btn_nav_manage_kos) menuju [OwnerKosScreen].
   Widget _buildAuthButton(BuildContext context) {
     AuthProvider? authProvider;
     try {
@@ -120,25 +121,20 @@ class _KosListScreenState extends State<KosListScreen> {
 
     if (isAuthenticated) {
       return TextButton.icon(
-        key: const Key('btn_nav_logout'),
-        onPressed: () async {
-          await authProvider?.logout();
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Anda telah keluar.'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
+        key: const Key('btn_nav_manage_kos'),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OwnerKosScreen()),
+          );
         },
-        icon: const Icon(Icons.logout_rounded, size: 18),
+        icon: const Icon(Icons.manage_accounts_rounded, size: 18),
         label: const Text(
-          'Keluar',
+          'Kelola Kos',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.error,
+          foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 10),
         ),
       );

@@ -7,6 +7,7 @@ import 'package:kosfinder/providers/auth_provider.dart';
 import 'package:kosfinder/providers/kos_provider.dart';
 import 'package:kosfinder/repositories/auth_repository.dart';
 import 'package:kosfinder/repositories/kos_repository.dart';
+import 'package:kosfinder/screens/kos_list_screen.dart';
 import 'package:kosfinder/screens/owner_kos_screen.dart';
 import 'package:kosfinder/widgets/owner_kos_card_widget.dart';
 import 'package:provider/provider.dart';
@@ -36,6 +37,9 @@ class MockOwnerKosRepository extends KosRepository {
   int getOwnerListCallCount = 0;
   int deleteCallCount = 0;
   String? lastDeletedId;
+
+  @override
+  Future<List<KosModel>> getKosList() async => [];
 
   @override
   Future<List<KosModel>> getOwnerKosList([String? ownerId]) async {
@@ -314,25 +318,27 @@ void main() {
       },
     );
 
-    testWidgets('8. Tombol Logout memanggil proses logout pada AuthProvider', (
-      tester,
-    ) async {
-      mockAuthRepository.mockUser = sampleOwner;
-      authProvider = AuthProvider(repository: mockAuthRepository);
-      mockKosRepository.mockOwnerKos = sampleKosList;
+    testWidgets(
+      '8. Tombol Logout memanggil proses logout pada AuthProvider dan mengarahkan ke KosListScreen',
+      (tester) async {
+        mockAuthRepository.mockUser = sampleOwner;
+        authProvider = AuthProvider(repository: mockAuthRepository);
+        mockKosRepository.mockOwnerKos = sampleKosList;
 
-      await tester.pumpWidget(createScreenUnderTest());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createScreenUnderTest());
+        await tester.pumpAndSettle();
 
-      final logoutBtn = find.byKey(const Key('btn_owner_logout'));
-      expect(logoutBtn, findsOneWidget);
-      expect(find.text('Logout'), findsOneWidget);
+        final logoutBtn = find.byKey(const Key('btn_owner_logout'));
+        expect(logoutBtn, findsOneWidget);
+        expect(find.text('Logout'), findsOneWidget);
 
-      await tester.tap(logoutBtn);
-      await tester.pumpAndSettle();
+        await tester.tap(logoutBtn);
+        await tester.pumpAndSettle();
 
-      expect(mockAuthRepository.logoutCallCount, 1);
-      expect(authProvider.isAuthenticated, isFalse);
-    });
+        expect(mockAuthRepository.logoutCallCount, 1);
+        expect(authProvider.isAuthenticated, isFalse);
+        expect(find.byType(KosListScreen), findsOneWidget);
+      },
+    );
   });
 }

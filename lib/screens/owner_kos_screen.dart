@@ -49,14 +49,11 @@ class _OwnerKosScreenState extends State<OwnerKosScreen> {
       ),
     );
 
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const KosListScreen()),
-      );
-    }
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const KosListScreen()),
+      (route) => false,
+    );
   }
 
   void _handleAddKos() {

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'kos_list_screen.dart';
+import 'owner_kos_screen.dart';
 import 'register_screen.dart';
 
 /// Halaman login pemilik kos (LoginScreen).
@@ -79,8 +80,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      // 4. Arahkan pengguna kembali ke halaman daftar kos
-      _navigateToKosList();
+      // 4. Arahkan pengguna ke halaman kelola kos pemilik
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const OwnerKosScreen()),
+      );
     } else {
       // 5. Tampilkan pesan kesalahan jika login gagal (NFR03: form input tetap terjaga)
       final error =
