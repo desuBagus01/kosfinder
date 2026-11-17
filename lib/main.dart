@@ -3,7 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'providers/auth_provider.dart';
 import 'providers/kos_provider.dart';
+import 'repositories/auth_repository.dart';
 import 'screens/kos_list_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -45,8 +47,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => KosProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => KosProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(repository: AuthRepository()),
+        ),
+      ],
       child: MaterialApp(
         title: 'KosFinder',
         theme: AppTheme.lightTheme,
