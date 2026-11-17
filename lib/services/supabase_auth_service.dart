@@ -18,12 +18,24 @@ class SupabaseAuthService {
   SupabaseClient get _supabaseClient => client ?? Supabase.instance.client;
 
   /// Mengambil data pengguna yang saat ini sedang login.
-  /// Mengembalikan `null` jika tidak ada sesi login yang aktif.
-  User? get currentUser => _supabaseClient.auth.currentUser;
+  /// Mengembalikan `null` jika tidak ada sesi login yang aktif atau client belum diinisialisasi.
+  User? get currentUser {
+    try {
+      return _supabaseClient.auth.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Mengambil data sesi pengguna yang saat ini sedang aktif.
-  /// Mengembalikan `null` jika tidak ada sesi aktif.
-  Session? get currentSession => _supabaseClient.auth.currentSession;
+  /// Mengembalikan `null` jika tidak ada sesi aktif atau client belum diinisialisasi.
+  Session? get currentSession {
+    try {
+      return _supabaseClient.auth.currentSession;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Mendaftarkan akun pemilik baru menggunakan email dan kata sandi.
   ///

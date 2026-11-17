@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/kos_model.dart';
+import '../providers/auth_provider.dart';
 import '../providers/kos_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/kos_card_widget.dart';
@@ -103,6 +104,63 @@ class _KosListScreenState extends State<KosListScreen> {
     );
   }
 
+  /// Membangun tombol navigasi autentikasi pada AppBar.
+  /// Menyesuaikan tampilan secara reaktif berdasarkan status login pengguna di [AuthProvider]:
+  /// - Belum login: menampilkan tombol "Masuk" (key: btn_nav_login) menuju [LoginScreen].
+  /// - Sudah login: menampilkan tombol "Keluar" (key: btn_nav_logout) untuk melakukan logout.
+  Widget _buildAuthButton(BuildContext context) {
+    AuthProvider? authProvider;
+    try {
+      authProvider = Provider.of<AuthProvider>(context);
+    } catch (_) {
+      authProvider = null;
+    }
+
+    final isAuthenticated = authProvider?.isAuthenticated ?? false;
+
+    if (isAuthenticated) {
+      return TextButton.icon(
+        key: const Key('btn_nav_logout'),
+        onPressed: () async {
+          await authProvider?.logout();
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Anda telah keluar.'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        icon: const Icon(Icons.logout_rounded, size: 18),
+        label: const Text(
+          'Keluar',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.error,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+        ),
+      );
+    }
+
+    return TextButton.icon(
+      key: const Key('btn_nav_login'),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      },
+      icon: const Icon(Icons.login_rounded, size: 18),
+      label: const Text('Masuk', style: TextStyle(fontWeight: FontWeight.w700)),
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,24 +190,7 @@ class _KosListScreenState extends State<KosListScreen> {
           ],
         ),
         actions: [
-          TextButton.icon(
-            key: const Key('btn_nav_login'),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-            },
-            icon: const Icon(Icons.login_rounded, size: 18),
-            label: const Text(
-              'Masuk',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-            ),
-          ),
+          _buildAuthButton(context),
           IconButton(
             icon: const Icon(Icons.info_outline),
             tooltip: 'About',

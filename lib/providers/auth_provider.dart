@@ -18,7 +18,11 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider({AuthRepository? repository})
     : _repository = repository ?? AuthRepository() {
     // Inisialisasi status sesi saat ini dari repository
-    _currentUser = _repository.currentUser;
+    try {
+      _currentUser = _repository.currentUser;
+    } catch (_) {
+      _currentUser = null;
+    }
   }
 
   /// Data pengguna yang sedang terautentikasi / login saat ini.

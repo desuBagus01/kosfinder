@@ -35,13 +35,25 @@ class AuthRepository {
 
   /// Mengambil data pengguna ([User]) yang sedang login saat ini.
   /// Mengembalikan `null` jika pengguna belum login atau sesi telah berakhir.
-  User? get currentUser => _service.currentUser;
+  User? get currentUser {
+    try {
+      return _service.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Memeriksa apakah ada sesi login pengguna yang sedang aktif.
   bool get isAuthenticated => currentUser != null;
 
   /// Mengambil sesi aktif pengguna ([Session]) jika tersedia.
-  Session? get currentSession => _service.currentSession;
+  Session? get currentSession {
+    try {
+      return _service.currentSession;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Mendaftarkan akun pemilik baru menggunakan email dan kata sandi.
   ///

@@ -34,16 +34,26 @@ class MockKosRepository extends KosRepository {
 }
 
 class MockListAuthRepository extends AuthRepository {
-  @override
-  User? get currentUser => null;
+  User? mockUser;
+  int logoutCallCount = 0;
 
   @override
-  bool get isAuthenticated => false;
+  User? get currentUser => mockUser;
+
+  @override
+  bool get isAuthenticated => mockUser != null;
+
+  @override
+  Future<void> logout() async {
+    logoutCallCount++;
+    mockUser = null;
+  }
 }
 
 void main() {
   group('KosListScreen Widget Tests', () {
     late MockKosRepository mockRepository;
+    late MockListAuthRepository mockAuthRepository;
     late KosProvider kosProvider;
     late AuthProvider authProvider;
 
@@ -84,8 +94,9 @@ void main() {
 
     setUp(() {
       mockRepository = MockKosRepository();
+      mockAuthRepository = MockListAuthRepository();
       kosProvider = KosProvider(repository: mockRepository);
-      authProvider = AuthProvider(repository: MockListAuthRepository());
+      authProvider = AuthProvider(repository: mockAuthRepository);
     });
 
     Widget createWidgetUnderTest() {
@@ -255,6 +266,89 @@ void main() {
 
         expect(find.byType(RegisterScreen), findsOneWidget);
         expect(find.text('Daftar Akun Pemilik'), findsOneWidget);
+      },
+    );
+
+    testWidgets('7. Menampilkan tombol Masuk ketika pengguna belum login', (
+      tester,
+    ) async {
+      mockRepository.mockKosList = sampleKosList;
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('btn_nav_login')), findsOneWidget);
+      expect(find.text('Masuk'), findsOneWidget);
+      expect(find.byKey(const Key('btn_nav_logout')), findsNothing);
+    });
+
+    testWidgets(
+      '8. Tombol di AppBar berubah menjadi Keluar secara reaktif setelah login',
+      (tester) async {
+        mockRepository.mockKosList = sampleKosList;
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
+
+        // Awalnya menampilkan Masuk
+        expect(find.byKey(const Key('btn_nav_login')), findsOneWidget);
+        expect(find.byKey(const Key('btn_nav_logout')), findsNothing);
+
+        // Simulasikan status login berhasil diperbarui pada AuthProvider
+        mockAuthRepository.mockUser = User.fromJson({
+          'id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+          'app_metadata': <String, dynamic>{},
+          'user_metadata': <String, dynamic>{},
+          'aud': 'authenticated',
+          'created_at': '2026-11-16T10:00:00.000Z',
+          'email': 'pemilik@kos.com',
+        });
+        authProvider.refreshCurrentUser();
+        await tester.pumpAndSettle();
+
+        // Tombol berubah menjadi Keluar
+        expect(find.byKey(const Key('btn_nav_login')), findsNothing);
+        expect(find.byKey(const Key('btn_nav_logout')), findsOneWidget);
+        expect(find.text('Keluar'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '9. Mengetuk tombol Keluar menjalankan logout dan mengubah tombol kembali menjadi Masuk',
+      (tester) async {
+        mockRepository.mockKosList = sampleKosList;
+        mockAuthRepository.mockUser = User.fromJson({
+          'id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+          'app_metadata': <String, dynamic>{},
+          'user_metadata': <String, dynamic>{},
+          'aud': 'authenticated',
+          'created_at': '2026-11-16T10:00:00.000Z',
+          'email': 'pemilik@kos.com',
+        });
+        authProvider = AuthProvider(repository: mockAuthRepository);
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
+
+        // Tombol saat ini adalah Keluar
+        expect(find.byKey(const Key('btn_nav_logout')), findsOneWidget);
+        expect(find.text('Keluar'), findsOneWidget);
+
+        // Ketuk tombol Keluar
+        await tester.tap(find.byKey(const Key('btn_nav_logout')));
+        await tester.pumpAndSettle();
+
+        // Verifikasi logout terpanggil pada repositori
+        expect(mockAuthRepository.logoutCallCount, 1);
+        expect(authProvider.isAuthenticated, isFalse);
+
+        // Verifikasi notifikasi SnackBar muncul
+        expect(find.text('Anda telah keluar.'), findsOneWidget);
+
+        // Verifikasi tombol kembali menjadi Masuk
+        expect(find.byKey(const Key('btn_nav_logout')), findsNothing);
+        expect(find.byKey(const Key('btn_nav_login')), findsOneWidget);
+        expect(find.text('Masuk'), findsOneWidget);
       },
     );
   });
