@@ -97,16 +97,6 @@ class KosRepository {
 
   /// Mengambil daftar kos dengan pencarian kata kunci nama/area/alamat via Supabase OR / ILIKE
   /// serta filter kombinasi harga dan fasilitas pada lapisan Repository.
-  ///
-  /// - [keyword]: Kata kunci untuk mencocokkan kolom `name`, `area`, atau `address`
-  ///   secara case-insensitive menggunakan query Supabase:
-  ///   `or('name.ilike.%$keyword%,area.ilike.%$keyword%,address.ilike.%$keyword%')`.
-  /// - [maxPrice]: Batas harga maksimum per bulan (Rp/bulan) yang disaring di Repository.
-  /// - [mustHaveWifi]: Jika `true`, hanya kos yang memiliki fasilitas WiFi (kondisi AND).
-  /// - [mustHaveBathroom]: Jika `true`, hanya kos yang memiliki kamar mandi dalam (kondisi AND).
-  /// - [mustHaveParking]: Jika `true`, hanya kos yang memiliki fasilitas parkir (kondisi AND).
-  ///
-  /// Melempar [KosException] jika terjadi gangguan jaringan atau kegagalan query.
   Future<List<KosModel>> getKosListFiltered({
     String keyword = '',
     int? maxPrice,
@@ -160,9 +150,6 @@ class KosRepository {
   }
 
   /// Menambahkan data kos baru ke basis data.
-  /// Meneruskan data ke [SupabaseKosService.createKos] yang memverifikasi sesi login
-  /// dan menyematkan UID pengguna yang login ke kolom `owner_id`.
-  /// Melempar [KosException] jika penambahan gagal atau pengguna belum login.
   Future<KosModel> createKos(KosModel kos) async {
     try {
       final rawData = await _service.createKos(kos.toJson());
@@ -192,9 +179,6 @@ class KosRepository {
   }
 
   /// Memperbarui data kos yang ada pada basis data.
-  /// Meneruskan data ke [SupabaseKosService.updateKos].
-  /// Memastikan update hanya memengaruhi data milik pemilik yang sedang login.
-  /// Melempar [KosException] jika pembaruan gagal.
   Future<KosModel> updateKos(KosModel kos) async {
     try {
       final rawData = await _service.updateKos(kos.id, kos.toJson());
@@ -224,9 +208,6 @@ class KosRepository {
   }
 
   /// Menghapus data kos berdasarkan [id] UUID.
-  /// Meneruskan ke [SupabaseKosService.deleteKos].
-  /// Melempar [ArgumentError] jika [id] kosong.
-  /// Melempar [KosException] jika penghapusan gagal.
   Future<void> deleteKos(String id) async {
     final trimmedId = id.trim();
     if (trimmedId.isEmpty) {
@@ -251,6 +232,47 @@ class KosRepository {
       rethrow;
     } catch (e) {
       throw KosException('Gagal menghapus kos: $e', e);
+    }
+  }
+
+  /// Memperbarui jumlah kamar tersedia milik pemilik yang sedang login.
+  /// Melempar [ArgumentError] jika [kosId] kosong.
+  /// Melempar [KosException] jika pembaruan gagal, kamar negatif, atau pengguna belum login.
+  Future<KosModel> updateAvailableRooms(String kosId, int newRooms) async {
+    final trimmedId = kosId.trim();
+    if (trimmedId.isEmpty) {
+      throw ArgumentError.value(kosId, 'kosId', 'ID kos tidak boleh kosong.');
+    }
+    if (newRooms < 0) {
+      throw const KosException('Jumlah kamar tidak boleh kurang dari 0');
+    }
+
+    try {
+      final rawData = await _service.updateAvailableRooms(trimmedId, newRooms);
+      return KosModel.fromJson(rawData);
+    } on ArgumentError {
+      rethrow;
+    } on SocketException catch (e) {
+      throw KosException(
+        'Gagal memperbarui ketersediaan kamar. Silakan periksa koneksi internet Anda.',
+        e,
+      );
+    } on TimeoutException catch (e) {
+      throw KosException(
+        'Koneksi waktu habis saat memperbarui ketersediaan kamar. Silakan coba kembali.',
+        e,
+      );
+    } on AuthException catch (e) {
+      throw KosException(e.message, e);
+    } on FormatException catch (e) {
+      throw KosException(
+        'Format data kos dari server tidak valid: ${e.message}',
+        e,
+      );
+    } on KosException {
+      rethrow;
+    } catch (e) {
+      throw KosException('Gagal memperbarui ketersediaan kamar: $e', e);
     }
   }
 

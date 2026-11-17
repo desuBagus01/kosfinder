@@ -72,31 +72,36 @@ class KosCardWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isFull
-                            ? AppColors.errorLight
-                            : AppColors.successLight,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isFull
-                              ? AppColors.errorBorder
-                              : AppColors.successBorder,
-                          width: 1,
+                    Tooltip(
+                      message: isFull
+                          ? 'Kamar Penuh'
+                          : 'Kamar Tersedia: ${kos.availableRooms} kamar',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
                         ),
-                      ),
-                      child: Text(
-                        isFull
-                            ? 'Kamar Penuh'
-                            : 'Sisa ${kos.availableRooms} kamar',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isFull ? AppColors.error : AppColors.success,
+                        decoration: BoxDecoration(
+                          color: isFull
+                              ? AppColors.errorLight
+                              : AppColors.successLight,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isFull
+                                ? AppColors.errorBorder
+                                : AppColors.successBorder,
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          isFull
+                              ? 'Kamar Penuh'
+                              : 'Sisa ${kos.availableRooms} kamar',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isFull ? AppColors.error : AppColors.success,
+                          ),
                         ),
                       ),
                     ),

@@ -220,6 +220,58 @@ class SupabaseKosService {
     }
   }
 
+  /// Memperbarui jumlah kamar tersedia pada tabel `public.kos`.
+  /// Memeriksa sesi login pengguna aktif dan memastikan update hanya memengaruhi
+  /// baris data milik pengguna yang sedang login (`owner_id == currentUser.id`).
+  /// Melempar [AuthException] jika pengguna belum login.
+  /// Melempar [ArgumentError] jika [newRooms] negatif.
+  Future<Map<String, dynamic>> updateAvailableRooms(
+    String kosId,
+    int newRooms,
+  ) async {
+    final currentUser = _supabaseClient.auth.currentUser;
+    if (currentUser == null) {
+      throw const AuthException(
+        'Pengguna belum login. Operasi pembaruan kamar ditolak.',
+      );
+    }
+
+    if (newRooms < 0) {
+      throw ArgumentError('Jumlah kamar tidak boleh kurang dari 0');
+    }
+
+    try {
+      final response = await _supabaseClient
+          .from('kos')
+          .update({
+            'available_rooms': newRooms,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', kosId)
+          .eq('owner_id', currentUser.id)
+          .select()
+          .single();
+
+      return Map<String, dynamic>.from(response);
+    } on SocketException {
+      rethrow;
+    } on TimeoutException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw Exception(
+        'Gagal memperbarui ketersediaan kamar di basis data: ${e.message}',
+      );
+    } catch (e) {
+      if (e is SocketException ||
+          e is TimeoutException ||
+          e is AuthException ||
+          e is ArgumentError) {
+        rethrow;
+      }
+      throw Exception('Terjadi kesalahan saat memperbarui ketersediaan kamar: $e');
+    }
+  }
+
   /// Mengambil daftar kos yang dimiliki oleh pemilik tertentu dari tabel `public.kos`.
   /// Jika [ownerId] tidak disertakan, mengambil ID pengguna aktif dari Supabase Auth.
   /// Diurutkan berdasarkan `created_at` descending.

@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../models/kos_model.dart';
 import '../theme/app_theme.dart';
+import 'update_rooms_dialog.dart';
 
 /// Widget kartu kos untuk halaman pengelolaan kos pemilik (`OwnerKosScreen`).
-/// Menampilkan informasi lengkap kos beserta tombol aksi Edit dan Hapus.
+/// Menampilkan informasi lengkap kos beserta tombol aksi Update Kamar, Edit, dan Hapus.
 /// Mengadopsi prinsip desain Modern Minimalist dengan Blue Theme.
-/// Memenuhi FR09, FR10, FR11, FR12, US05, US06, US07, AC05-5, AC07-1, AC07-2, dan NFR04.
+/// Memenuhi FR09, FR10, FR11, FR12, FR13, US05, US06, US07, US08, AC08-1, AC08-3.
 class OwnerKosCardWidget extends StatelessWidget {
   final KosModel kos;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onUpdateRooms;
   final VoidCallback? onTap;
 
   const OwnerKosCardWidget({
@@ -18,6 +20,7 @@ class OwnerKosCardWidget extends StatelessWidget {
     required this.kos,
     this.onEdit,
     this.onDelete,
+    this.onUpdateRooms,
     this.onTap,
   });
 
@@ -32,6 +35,13 @@ class OwnerKosCardWidget extends StatelessWidget {
       buffer.write(priceString[i]);
     }
     return 'Rp ${buffer.toString()}/bulan';
+  }
+
+  void _showUpdateRoomsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => UpdateRoomsDialog(kos: kos),
+    );
   }
 
   @override
@@ -80,31 +90,36 @@ class OwnerKosCardWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isFull
-                            ? AppColors.errorLight
-                            : AppColors.successLight,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isFull
-                              ? AppColors.errorBorder
-                              : AppColors.successBorder,
-                          width: 1,
+                    Tooltip(
+                      message: isFull
+                          ? 'Kamar Penuh'
+                          : 'Kamar Tersedia: ${kos.availableRooms} kamar',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
                         ),
-                      ),
-                      child: Text(
-                        isFull
-                            ? 'Kamar Penuh'
-                            : 'Sisa ${kos.availableRooms} kamar',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isFull ? AppColors.error : AppColors.success,
+                        decoration: BoxDecoration(
+                          color: isFull
+                              ? AppColors.errorLight
+                              : AppColors.successLight,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isFull
+                                ? AppColors.errorBorder
+                                : AppColors.successBorder,
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          isFull
+                              ? 'Kamar Penuh'
+                              : 'Sisa ${kos.availableRooms} kamar',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isFull ? AppColors.error : AppColors.success,
+                          ),
                         ),
                       ),
                     ),
@@ -175,10 +190,29 @@ class OwnerKosCardWidget extends StatelessWidget {
                 const Divider(height: 1),
                 const SizedBox(height: 12),
 
-                // ── Baris Tombol Aksi: Edit & Hapus ─────────────────────────
+                // ── Baris Tombol Aksi: Update Kamar, Edit & Hapus ───────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    OutlinedButton.icon(
+                      key: Key('btn_update_rooms_${kos.id}'),
+                      onPressed: onUpdateRooms ??
+                          () => _showUpdateRoomsDialog(context),
+                      icon: const Icon(Icons.hotel_outlined, size: 16),
+                      label: const Text('Update Kamar'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.border),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     OutlinedButton.icon(
                       key: Key('btn_edit_kos_${kos.id}'),
                       onPressed: onEdit,
@@ -188,7 +222,7 @@ class OwnerKosCardWidget extends StatelessWidget {
                         foregroundColor: AppColors.primary,
                         side: const BorderSide(color: AppColors.border),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
+                          horizontal: 12,
                           vertical: 8,
                         ),
                         shape: RoundedRectangleBorder(
@@ -196,7 +230,7 @@ class OwnerKosCardWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     OutlinedButton.icon(
                       key: Key('btn_delete_kos_${kos.id}'),
                       onPressed: onDelete,
@@ -206,7 +240,7 @@ class OwnerKosCardWidget extends StatelessWidget {
                         foregroundColor: AppColors.error,
                         side: const BorderSide(color: AppColors.errorBorder),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
+                          horizontal: 12,
                           vertical: 8,
                         ),
                         shape: RoundedRectangleBorder(

@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/kos_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/owner_kos_card_widget.dart';
+import '../widgets/update_rooms_dialog.dart';
 import 'kos_form_screen.dart';
 import 'kos_list_screen.dart';
 import 'login_screen.dart';
@@ -68,6 +69,13 @@ class _OwnerKosScreenState extends State<OwnerKosScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => KosFormScreen(kos: kos)),
+    );
+  }
+
+  void _handleUpdateRooms(KosModel kos) {
+    showDialog(
+      context: context,
+      builder: (context) => UpdateRoomsDialog(kos: kos),
     );
   }
 
@@ -444,6 +452,7 @@ class _OwnerKosScreenState extends State<OwnerKosScreen> {
             kos: kos,
             onEdit: () => _handleEditKos(kos),
             onDelete: () => _handleDeleteKos(kos),
+            onUpdateRooms: () => _handleUpdateRooms(kos),
           );
         },
       ),
