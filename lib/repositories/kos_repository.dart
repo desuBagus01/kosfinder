@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/kos_model.dart';
 import '../services/supabase_kos_service.dart';
 
@@ -155,5 +157,131 @@ class KosRepository {
       if (mustHaveParking && !kos.hasParking) return false;
       return true;
     }).toList();
+  }
+
+  /// Menambahkan data kos baru ke basis data.
+  /// Meneruskan data ke [SupabaseKosService.createKos] yang memverifikasi sesi login
+  /// dan menyematkan UID pengguna yang login ke kolom `owner_id`.
+  /// Melempar [KosException] jika penambahan gagal atau pengguna belum login.
+  Future<KosModel> createKos(KosModel kos) async {
+    try {
+      final rawData = await _service.createKos(kos.toJson());
+      return KosModel.fromJson(rawData);
+    } on SocketException catch (e) {
+      throw KosException(
+        'Gagal menambahkan kos. Silakan periksa koneksi internet Anda.',
+        e,
+      );
+    } on TimeoutException catch (e) {
+      throw KosException(
+        'Koneksi waktu habis saat menambahkan kos. Silakan coba kembali.',
+        e,
+      );
+    } on AuthException catch (e) {
+      throw KosException(e.message, e);
+    } on FormatException catch (e) {
+      throw KosException(
+        'Format data kos dari server tidak valid: ${e.message}',
+        e,
+      );
+    } on KosException {
+      rethrow;
+    } catch (e) {
+      throw KosException('Gagal menambahkan kos: $e', e);
+    }
+  }
+
+  /// Memperbarui data kos yang ada pada basis data.
+  /// Meneruskan data ke [SupabaseKosService.updateKos].
+  /// Memastikan update hanya memengaruhi data milik pemilik yang sedang login.
+  /// Melempar [KosException] jika pembaruan gagal.
+  Future<KosModel> updateKos(KosModel kos) async {
+    try {
+      final rawData = await _service.updateKos(kos.id, kos.toJson());
+      return KosModel.fromJson(rawData);
+    } on SocketException catch (e) {
+      throw KosException(
+        'Gagal memperbarui kos. Silakan periksa koneksi internet Anda.',
+        e,
+      );
+    } on TimeoutException catch (e) {
+      throw KosException(
+        'Koneksi waktu habis saat memperbarui kos. Silakan coba kembali.',
+        e,
+      );
+    } on AuthException catch (e) {
+      throw KosException(e.message, e);
+    } on FormatException catch (e) {
+      throw KosException(
+        'Format data kos dari server tidak valid: ${e.message}',
+        e,
+      );
+    } on KosException {
+      rethrow;
+    } catch (e) {
+      throw KosException('Gagal memperbarui kos: $e', e);
+    }
+  }
+
+  /// Menghapus data kos berdasarkan [id] UUID.
+  /// Meneruskan ke [SupabaseKosService.deleteKos].
+  /// Melempar [ArgumentError] jika [id] kosong.
+  /// Melempar [KosException] jika penghapusan gagal.
+  Future<void> deleteKos(String id) async {
+    final trimmedId = id.trim();
+    if (trimmedId.isEmpty) {
+      throw ArgumentError.value(id, 'id', 'ID kos tidak boleh kosong.');
+    }
+
+    try {
+      await _service.deleteKos(trimmedId);
+    } on SocketException catch (e) {
+      throw KosException(
+        'Gagal menghapus kos. Silakan periksa koneksi internet Anda.',
+        e,
+      );
+    } on TimeoutException catch (e) {
+      throw KosException(
+        'Koneksi waktu habis saat menghapus kos. Silakan coba kembali.',
+        e,
+      );
+    } on AuthException catch (e) {
+      throw KosException(e.message, e);
+    } on KosException {
+      rethrow;
+    } catch (e) {
+      throw KosException('Gagal menghapus kos: $e', e);
+    }
+  }
+
+  /// Mengambil seluruh data kos milik pemilik yang sedang login dari [SupabaseKosService].
+  /// Mengembalikan list kosong `[]` jika pemilik belum memiliki kos.
+  /// Melempar [KosException] jika terjadi kegagalan jaringan atau belum login.
+  Future<List<KosModel>> getOwnerKosList([String? ownerId]) async {
+    try {
+      final rawList = await _service.getOwnerKosList(ownerId);
+      return rawList.map((map) => KosModel.fromJson(map)).toList();
+    } on SocketException catch (e) {
+      throw KosException(
+        'Gagal memuat daftar kos pemilik. Silakan periksa koneksi internet Anda.',
+        e,
+      );
+    } on TimeoutException catch (e) {
+      throw KosException(
+        'Koneksi waktu habis saat memuat daftar kos pemilik. Silakan coba kembali.',
+        e,
+      );
+    } on AuthException catch (e) {
+      throw KosException(e.message, e);
+    } on FormatException catch (e) {
+      throw KosException(
+        'Format data kos pemilik dari server tidak valid: ${e.message}',
+        e,
+      );
+    } on KosException {
+      rethrow;
+    } catch (e) {
+      throw KosException('Gagal memuat daftar kos pemilik: $e', e);
+    }
   }
 }

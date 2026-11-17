@@ -102,4 +102,156 @@ class SupabaseKosService {
       throw Exception('Terjadi kesalahan saat memuat detail kos: $e');
     }
   }
+
+  /// Menambahkan data kos baru ke tabel `public.kos`.
+  /// Wajib memeriksa sesi login pengguna aktif melalui Supabase Auth.
+  /// Menolak operasi dengan melempar [AuthException] jika tidak ada sesi login.
+  /// Nilai `owner_id` mutlak diambil dari `currentUser.id` untuk mencegah manipulasi client.
+  Future<Map<String, dynamic>> createKos(Map<String, dynamic> kosData) async {
+    final currentUser = _supabaseClient.auth.currentUser;
+    if (currentUser == null) {
+      throw const AuthException(
+        'Pengguna belum login. Operasi penambahan kos ditolak.',
+      );
+    }
+
+    final payload = Map<String, dynamic>.from(kosData);
+    // Mutlak gunakan UID pengguna yang sedang terautentikasi (mencegah manipulasi client)
+    payload['owner_id'] = currentUser.id;
+    if (payload['id'] == null ||
+        (payload['id'] is String && (payload['id'] as String).trim().isEmpty)) {
+      payload.remove('id');
+    }
+
+    try {
+      final response = await _supabaseClient
+          .from('kos')
+          .insert(payload)
+          .select()
+          .single();
+
+      return Map<String, dynamic>.from(response);
+    } on SocketException {
+      rethrow;
+    } on TimeoutException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw Exception('Gagal menambahkan kos ke basis data: ${e.message}');
+    } catch (e) {
+      if (e is SocketException || e is TimeoutException || e is AuthException) {
+        rethrow;
+      }
+      throw Exception('Terjadi kesalahan saat menambahkan kos: $e');
+    }
+  }
+
+  /// Memperbarui data kos pada tabel `public.kos`.
+  /// Memeriksa sesi login pengguna aktif dan memastikan update hanya memengaruhi
+  /// baris data milik pengguna yang sedang login (`owner_id == currentUser.id`).
+  Future<Map<String, dynamic>> updateKos(
+    String id,
+    Map<String, dynamic> kosData,
+  ) async {
+    final currentUser = _supabaseClient.auth.currentUser;
+    if (currentUser == null) {
+      throw const AuthException(
+        'Pengguna belum login. Operasi pengubahan kos ditolak.',
+      );
+    }
+
+    final payload = Map<String, dynamic>.from(kosData);
+    payload.remove('id'); // ID tidak dapat diubah
+    payload['owner_id'] =
+        currentUser.id; // Menjamin owner_id tidak dapat dipalsukan
+    payload['updated_at'] = DateTime.now().toIso8601String();
+
+    try {
+      final response = await _supabaseClient
+          .from('kos')
+          .update(payload)
+          .eq('id', id)
+          .eq('owner_id', currentUser.id)
+          .select()
+          .single();
+
+      return Map<String, dynamic>.from(response);
+    } on SocketException {
+      rethrow;
+    } on TimeoutException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw Exception('Gagal memperbarui kos di basis data: ${e.message}');
+    } catch (e) {
+      if (e is SocketException || e is TimeoutException || e is AuthException) {
+        rethrow;
+      }
+      throw Exception('Terjadi kesalahan saat memperbarui kos: $e');
+    }
+  }
+
+  /// Menghapus data kos dari tabel `public.kos`.
+  /// Memeriksa sesi login pengguna aktif dan memastikan penghapusan hanya memengaruhi
+  /// baris data milik pengguna yang sedang login (`owner_id == currentUser.id`).
+  Future<void> deleteKos(String id) async {
+    final currentUser = _supabaseClient.auth.currentUser;
+    if (currentUser == null) {
+      throw const AuthException(
+        'Pengguna belum login. Operasi penghapusan kos ditolak.',
+      );
+    }
+
+    try {
+      await _supabaseClient
+          .from('kos')
+          .delete()
+          .eq('id', id)
+          .eq('owner_id', currentUser.id);
+    } on SocketException {
+      rethrow;
+    } on TimeoutException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw Exception('Gagal menghapus kos dari basis data: ${e.message}');
+    } catch (e) {
+      if (e is SocketException || e is TimeoutException || e is AuthException) {
+        rethrow;
+      }
+      throw Exception('Terjadi kesalahan saat menghapus kos: $e');
+    }
+  }
+
+  /// Mengambil daftar kos yang dimiliki oleh pemilik tertentu dari tabel `public.kos`.
+  /// Jika [ownerId] tidak disertakan, mengambil ID pengguna aktif dari Supabase Auth.
+  /// Diurutkan berdasarkan `created_at` descending.
+  Future<List<Map<String, dynamic>>> getOwnerKosList([String? ownerId]) async {
+    final uid = ownerId ?? _supabaseClient.auth.currentUser?.id;
+    if (uid == null) {
+      throw const AuthException(
+        'Pengguna belum login. Tidak dapat memuat daftar kos pemilik.',
+      );
+    }
+
+    try {
+      final response = await _supabaseClient
+          .from('kos')
+          .select()
+          .eq('owner_id', uid)
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } on SocketException {
+      rethrow;
+    } on TimeoutException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw Exception(
+        'Gagal memuat daftar kos pemilik dari basis data: ${e.message}',
+      );
+    } catch (e) {
+      if (e is SocketException || e is TimeoutException || e is AuthException) {
+        rethrow;
+      }
+      throw Exception('Terjadi kesalahan saat memuat daftar kos pemilik: $e');
+    }
+  }
 }
