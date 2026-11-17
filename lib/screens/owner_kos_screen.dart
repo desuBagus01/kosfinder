@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/kos_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/owner_kos_card_widget.dart';
+import 'kos_form_screen.dart';
 import 'kos_list_screen.dart';
 import 'login_screen.dart';
 
@@ -57,14 +58,9 @@ class _OwnerKosScreenState extends State<OwnerKosScreen> {
   }
 
   void _handleAddKos() {
-    // Placeholder navigasi/formulir tambah kos (akan diimplementasikan penuh pada TASK-4.3)
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Formulir tambah kos akan tersedia pada TASK-4.3.'),
-        behavior: SnackBarBehavior.floating,
-      ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const KosFormScreen()),
     );
   }
 

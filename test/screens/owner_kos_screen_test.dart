@@ -7,6 +7,7 @@ import 'package:kosfinder/providers/auth_provider.dart';
 import 'package:kosfinder/providers/kos_provider.dart';
 import 'package:kosfinder/repositories/auth_repository.dart';
 import 'package:kosfinder/repositories/kos_repository.dart';
+import 'package:kosfinder/screens/kos_form_screen.dart';
 import 'package:kosfinder/screens/kos_list_screen.dart';
 import 'package:kosfinder/screens/owner_kos_screen.dart';
 import 'package:kosfinder/widgets/owner_kos_card_widget.dart';
@@ -249,7 +250,7 @@ void main() {
       },
     );
 
-    testWidgets('6. Tombol Tambah Kos tersedia pada halaman kelola kos', (
+    testWidgets('6. Tombol Tambah Kos membuka formulir tambah kos', (
       tester,
     ) async {
       mockAuthRepository.mockUser = sampleOwner;
@@ -265,11 +266,14 @@ void main() {
 
       // Ketuk tombol Tambah Kos
       await tester.tap(addBtn);
-      await tester.pump();
+      await tester.pumpAndSettle();
 
+      // Memastikan membuka KosFormScreen dan tidak lagi memunculkan pesan placeholder
+      expect(find.byType(KosFormScreen), findsOneWidget);
+      expect(find.text('Tambah Kos Baru'), findsOneWidget);
       expect(
         find.text('Formulir tambah kos akan tersedia pada TASK-4.3.'),
-        findsOneWidget,
+        findsNothing,
       );
     });
 
