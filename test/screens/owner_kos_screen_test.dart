@@ -299,26 +299,38 @@ void main() {
         expect(find.text('Edit'), findsOneWidget);
         expect(find.text('Hapus'), findsOneWidget);
 
-        // Ketuk Edit
+        // Ketuk Edit -> membuka formulir mode ubah
         await tester.tap(editBtn);
-        await tester.pump();
-        expect(
-          find.text(
-            'Form ubah "Kos Melati Singaraja" akan tersedia pada TASK-4.4.',
-          ),
-          findsOneWidget,
-        );
+        await tester.pumpAndSettle();
+        expect(find.byType(KosFormScreen), findsOneWidget);
+        expect(find.text('Ubah Kos'), findsOneWidget);
+        expect(find.text('Kos Melati Singaraja'), findsOneWidget);
 
-        // Ketuk Hapus
+        // Kembali ke OwnerKosScreen
+        final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+        navigator.pop();
+        await tester.pumpAndSettle();
+
+        // Ketuk Hapus -> menampilkan dialog konfirmasi hapus sebenarnya
         await tester.tap(deleteBtn);
-        await tester.pump();
-        expect(mockKosRepository.deleteCallCount, 0);
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsOneWidget);
+        expect(find.text('Hapus Kos'), findsOneWidget);
         expect(
           find.text(
-            'Konfirmasi hapus "Kos Melati Singaraja" akan tersedia pada TASK-4.4.',
+            'Apakah Anda yakin ingin menghapus "Kos Melati Singaraja"? Data kos yang dihapus tidak dapat dipulihkan kembali.',
           ),
           findsOneWidget,
         );
+        expect(find.byKey(const Key('btn_cancel_delete')), findsOneWidget);
+        expect(find.byKey(const Key('btn_confirm_delete')), findsOneWidget);
+
+        // Tekan Batal pada dialog konfirmasi
+        await tester.tap(find.byKey(const Key('btn_cancel_delete')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(mockKosRepository.deleteCallCount, 0);
       },
     );
 

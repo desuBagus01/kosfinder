@@ -9,11 +9,14 @@ import '../providers/kos_provider.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
-/// Halaman formulir penambahan kos baru (`KosFormScreen`) - Mode Tambah.
-/// Memungkinkan pemilik kos yang telah terautentikasi untuk mempublikasikan data kos baru.
-/// Memenuhi FR10, US06, AC06-1, AC06-2, AC06-3, AC06-4, NFR03, dan NFR04.
+/// Halaman formulir data kos (`KosFormScreen`) - Mode Tambah & Mode Ubah.
+/// Memungkinkan pemilik kos yang telah terautentikasi untuk mempublikasikan data kos baru
+/// atau memperbarui informasi kos miliknya sendiri.
+/// Memenuhi FR10, FR11, US06, US07, AC06-1, AC06-2, AC06-3, AC06-4, AC07-1, AC07-2, NFR03, dan NFR04.
 class KosFormScreen extends StatefulWidget {
-  const KosFormScreen({super.key});
+  final KosModel? kos;
+
+  const KosFormScreen({super.key, this.kos});
 
   @override
   State<KosFormScreen> createState() => _KosFormScreenState();
@@ -21,6 +24,8 @@ class KosFormScreen extends StatefulWidget {
 
 class _KosFormScreenState extends State<KosFormScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  bool get isEditMode => widget.kos != null;
 
   late final TextEditingController _nameController;
   late final TextEditingController _addressController;
@@ -37,13 +42,25 @@ class _KosFormScreenState extends State<KosFormScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
-    _addressController = TextEditingController();
-    _areaController = TextEditingController();
-    _contactController = TextEditingController();
-    _priceController = TextEditingController();
-    _descriptionController = TextEditingController();
-    _roomsController = TextEditingController();
+    _nameController = TextEditingController(text: widget.kos?.name ?? '');
+    _addressController = TextEditingController(text: widget.kos?.address ?? '');
+    _areaController = TextEditingController(text: widget.kos?.area ?? '');
+    _contactController = TextEditingController(
+      text: widget.kos?.contactNumber ?? '',
+    );
+    _priceController = TextEditingController(
+      text: widget.kos != null ? widget.kos!.pricePerMonth.toString() : '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.kos?.description ?? '',
+    );
+    _roomsController = TextEditingController(
+      text: widget.kos != null ? widget.kos!.availableRooms.toString() : '',
+    );
+
+    _hasWifi = widget.kos?.hasWifi ?? false;
+    _hasBathroomInside = widget.kos?.hasBathroomInside ?? false;
+    _hasParking = widget.kos?.hasParking ?? false;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
@@ -105,8 +122,12 @@ class _KosFormScreenState extends State<KosFormScreen> {
     final authProvider = context.read<AuthProvider>();
     if (!authProvider.isAuthenticated) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Anda harus login untuk menambahkan kos.'),
+        SnackBar(
+          content: Text(
+            isEditMode
+                ? 'Anda harus login untuk mengubah data kos.'
+                : 'Anda harus login untuk menambahkan kos.',
+          ),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -131,54 +152,100 @@ class _KosFormScreenState extends State<KosFormScreen> {
     final price = int.parse(_priceController.text.trim());
     final rooms = int.parse(_roomsController.text.trim());
 
-    // 3. Bangun objek KosModel
-    // Catatan Keamanan: ownerId TIDAK diambil dari input pengguna, melainkan dari sesi login pengguna aktif.
-    final newKos = KosModel(
-      id: _generateUuidV4(),
-      ownerId: authProvider.currentUser?.id ?? 'pending-owner',
-      name: _nameController.text.trim(),
-      address: _addressController.text.trim(),
-      area: _areaController.text.trim(),
-      contactNumber: _contactController.text.trim(),
-      pricePerMonth: price,
-      description: _descriptionController.text.trim(),
-      availableRooms: rooms,
-      hasWifi: _hasWifi,
-      hasBathroomInside: _hasBathroomInside,
-      hasParking: _hasParking,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    // 4. Eksekusi penyimpanan melalui Provider
-    final success = await kosProvider.createKos(newKos);
-
-    if (!mounted) return;
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          key: Key('kos_create_success_snackbar'),
-          content: Text('Kos berhasil ditambahkan!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
+    if (isEditMode) {
+      // 3a. Mode Ubah: Pertahankan ID dan ownerId asli dari kos yang sedang diedit
+      final updatedKos = widget.kos!.copyWith(
+        name: _nameController.text.trim(),
+        address: _addressController.text.trim(),
+        area: _areaController.text.trim(),
+        contactNumber: _contactController.text.trim(),
+        pricePerMonth: price,
+        description: _descriptionController.text.trim(),
+        availableRooms: rooms,
+        hasWifi: _hasWifi,
+        hasBathroomInside: _hasBathroomInside,
+        hasParking: _hasParking,
+        updatedAt: DateTime.now(),
       );
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
+
+      final success = await kosProvider.updateKos(updatedKos);
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            key: Key('kos_update_success_snackbar'),
+            content: Text('Data kos berhasil diperbarui!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+      } else {
+        // Tampilkan error notification, pertahankan input pengguna (NFR03)
+        final errorMsg =
+            kosProvider.errorMessage ??
+            'Gagal memperbarui kos. Silakan coba kembali.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } else {
-      // Tampilkan error notification, pertahankan input pengguna (NFR03)
-      final errorMsg =
-          kosProvider.errorMessage ??
-          'Gagal menambahkan kos. Silakan coba kembali.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
+      // 3b. Mode Tambah: Bangun objek KosModel baru
+      // Catatan Keamanan: ownerId TIDAK diambil dari input pengguna, melainkan dari sesi login pengguna aktif.
+      final newKos = KosModel(
+        id: _generateUuidV4(),
+        ownerId: authProvider.currentUser?.id ?? 'pending-owner',
+        name: _nameController.text.trim(),
+        address: _addressController.text.trim(),
+        area: _areaController.text.trim(),
+        contactNumber: _contactController.text.trim(),
+        pricePerMonth: price,
+        description: _descriptionController.text.trim(),
+        availableRooms: rooms,
+        hasWifi: _hasWifi,
+        hasBathroomInside: _hasBathroomInside,
+        hasParking: _hasParking,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
+
+      final success = await kosProvider.createKos(newKos);
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            key: Key('kos_create_success_snackbar'),
+            content: Text('Kos berhasil ditambahkan!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+      } else {
+        // Tampilkan error notification, pertahankan input pengguna (NFR03)
+        final errorMsg =
+            kosProvider.errorMessage ??
+            'Gagal menambahkan kos. Silakan coba kembali.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -190,7 +257,9 @@ class _KosFormScreenState extends State<KosFormScreen> {
     if (!auth.isAuthenticated) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(title: const Text('Tambah Kos Baru')),
+        appBar: AppBar(
+          title: Text(isEditMode ? 'Ubah Kos' : 'Tambah Kos Baru'),
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -219,10 +288,12 @@ class _KosFormScreenState extends State<KosFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Anda harus masuk terlebih dahulu untuk menambahkan kos baru.',
+                Text(
+                  isEditMode
+                      ? 'Anda harus masuk terlebih dahulu untuk mengubah data kos.'
+                      : 'Anda harus masuk terlebih dahulu untuk menambahkan kos baru.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -251,9 +322,12 @@ class _KosFormScreenState extends State<KosFormScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Tambah Kos Baru',
-          style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.3),
+        title: Text(
+          isEditMode ? 'Ubah Kos' : 'Tambah Kos Baru',
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+          ),
         ),
       ),
       body: SafeArea(
@@ -586,7 +660,7 @@ class _KosFormScreenState extends State<KosFormScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Simpan Kos'),
+                        : Text(isEditMode ? 'Simpan Perubahan' : 'Simpan Kos'),
                   ),
                 ),
               ],

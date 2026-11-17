@@ -65,28 +65,148 @@ class _OwnerKosScreenState extends State<OwnerKosScreen> {
   }
 
   void _handleEditKos(KosModel kos) {
-    // Placeholder navigasi ubah kos (akan diimplementasikan penuh pada TASK-4.4)
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text('Form ubah "${kos.name}" akan tersedia pada TASK-4.4.'),
-        behavior: SnackBarBehavior.floating,
-      ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => KosFormScreen(kos: kos)),
     );
   }
 
-  void _handleDeleteKos(KosModel kos) {
-    // Placeholder konfirmasi dan penghapusan kos (akan diimplementasikan penuh pada TASK-4.4)
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          'Konfirmasi hapus "${kos.name}" akan tersedia pada TASK-4.4.',
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
+  Future<void> _handleDeleteKos(KosModel kos) async {
+    final kosProvider = context.read<KosProvider>();
+    bool isDeleting = false;
+
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              key: Key('dialog_delete_kos_${kos.id}'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: AppColors.errorLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: AppColors.error,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Hapus Kos',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                'Apakah Anda yakin ingin menghapus "${kos.name}"? '
+                'Data kos yang dihapus tidak dapat dipulihkan kembali.',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              actionsPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              actions: [
+                OutlinedButton(
+                  key: const Key('btn_cancel_delete'),
+                  onPressed: isDeleting
+                      ? null
+                      : () => Navigator.pop(dialogContext, false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textSecondary,
+                    side: const BorderSide(color: AppColors.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Batal'),
+                ),
+                ElevatedButton(
+                  key: const Key('btn_confirm_delete'),
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          setDialogState(() {
+                            isDeleting = true;
+                          });
+
+                          final success = await kosProvider.deleteKos(kos.id);
+
+                          if (!dialogContext.mounted) return;
+                          Navigator.pop(dialogContext, success);
+
+                          if (!mounted) return;
+
+                          final messenger = ScaffoldMessenger.of(this.context);
+                          messenger.hideCurrentSnackBar();
+
+                          if (success) {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                key: const Key('kos_delete_success_snackbar'),
+                                content: Text(
+                                  'Kos "${kos.name}" berhasil dihapus.',
+                                ),
+                                backgroundColor: AppColors.success,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          } else {
+                            final errorMsg =
+                                kosProvider.errorMessage ??
+                                'Gagal menghapus kos. Silakan coba kembali.';
+                            kosProvider.clearError();
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(errorMsg),
+                                backgroundColor: AppColors.error,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: isDeleting
+                      ? const SizedBox(
+                          key: Key('delete_loading_indicator'),
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Ya, Hapus'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
